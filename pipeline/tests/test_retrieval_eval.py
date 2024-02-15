@@ -71,6 +71,7 @@ def test_corpus_search_can_be_restricted_to_one_filing(tmp_path):
                 f.write(json.dumps({"doc": doc, "page": i, "text": t}) + "\n")
     c = Corpus(["A", "B"], tmp_path)
     assert c.search("alpha", 5)[0][0] == ("B", 1)
-    assert [h for h, _ in c.search("alpha", 5, doc="A")] == [("A", 1)]
+    assert [h for h, _ in c.search("alpha", 5, docs=["A"])] == [("A", 1)]
+    assert c.search("alpha", 5, docs=["nope"]) == []
     assert c.page("A", 2).text == "beta two"
     assert c.page("A", 3) is None
