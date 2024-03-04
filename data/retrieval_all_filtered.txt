@@ -1,0 +1,31 @@
+corpus: 360 filings, 53399 pages
+company recognised without nicknames: 128/150
+filter: right filing kept for 148/150; company recognised for 147/150; candidates per question when recognised: 3.0 of 360
+  lost financebench_id_00651 JOHNSON_JOHNSON_2022Q4_EARNINGS: companies=['Johnson & Johnson'] years=[2023]
+  lost financebench_id_00702 PFIZER_2021_10K: companies=['Pfizer'] years=[2019]
+| setting | n | hit@1 | hit@3 | hit@5 | hit@10 | all@5 | MRR |
+|---|---|---|---|---|---|---|---|
+| BM25, oracle filing | 150 | 0.14 | 0.23 | 0.29 | 0.44 | 0.26 | 0.209 |
+| BM25, full corpus | 150 | 0.07 | 0.08 | 0.10 | 0.13 | 0.10 | 0.080 |
+| BM25 + company/year filter | 150 | 0.09 | 0.14 | 0.18 | 0.31 | 0.15 | 0.135 |
+
+domain-relevant (n=50)
+| setting | n | hit@1 | hit@3 | hit@5 | hit@10 | all@5 | MRR |
+|---|---|---|---|---|---|---|---|
+| oracle | 50 | 0.06 | 0.10 | 0.16 | 0.26 | 0.12 | 0.109 |
+| full | 50 | 0.02 | 0.02 | 0.06 | 0.12 | 0.06 | 0.037 |
+| filtered | 50 | 0.06 | 0.10 | 0.12 | 0.20 | 0.08 | 0.091 |
+
+metrics-generated (n=50)
+| setting | n | hit@1 | hit@3 | hit@5 | hit@10 | all@5 | MRR |
+|---|---|---|---|---|---|---|---|
+| oracle | 50 | 0.04 | 0.16 | 0.18 | 0.34 | 0.14 | 0.110 |
+| full | 50 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.000 |
+| filtered | 50 | 0.02 | 0.10 | 0.16 | 0.32 | 0.12 | 0.083 |
+
+novel-generated (n=50)
+| setting | n | hit@1 | hit@3 | hit@5 | hit@10 | all@5 | MRR |
+|---|---|---|---|---|---|---|---|
+| oracle | 50 | 0.32 | 0.42 | 0.52 | 0.72 | 0.52 | 0.410 |
+| full | 50 | 0.18 | 0.22 | 0.24 | 0.26 | 0.24 | 0.204 |
+| filtered | 50 | 0.18 | 0.22 | 0.26 | 0.40 | 0.26 | 0.230 |
