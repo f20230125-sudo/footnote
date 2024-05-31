@@ -44,7 +44,7 @@ class BM25:
 
     def scores(self, query: list[str], allowed: set[int] | None = None) -> dict[int, float]:
         out: dict[int, float] = defaultdict(float)
-        for term in set(query):
+        for term in sorted(set(query)):  # a fixed order, so the browser port adds in the same one
             idf = self.idf(term)
             for i, tf in self.postings.get(term, ()):
                 if allowed is not None and i not in allowed:

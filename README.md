@@ -6,6 +6,16 @@ The point of the project is the measurement, not the demo: every part (retrieval
 
 > **Status (11 Oct 2026): retrieval is measured; no language model has been run yet.** Everything below the retrieval table is built and tested against scripted fakes only. The first real model run will be the first test of the prompts. This README will be updated with real numbers, including any that come out badly.
 
+## The site
+
+`web/` is a small Next.js site with three pages, and it needs no server beyond static files:
+
+- **Search**: type a question, or pick one of 31 FinanceBench questions about 7 filings (670 pages, published by the companies themselves). The browser ranks the pages and marks the question's words in them. For a benchmark question it also shows which page FinanceBench points to and where this search ranks it. A TypeScript port of the search runs in the browser, and a test holds it to the Python ranking, page for page, scores to five decimals.
+- **Results**: the measurements below as a chart you can switch between the top 1, 3, 5 and 10 results, with every number in a table.
+- **How it works**: each part of the system and how far it has been checked (measured, unit-tested, tested only against a stand-in model, or not run).
+
+The site finds pages; it does not write answers, because no language model has been run yet. It ships the text of the 7 filings and the 31 questions, but not FinanceBench's reference answers or evidence text. Its data files are written by `python -m footnote.site_export`, so the page cannot drift from the evaluation. 24 end-to-end tests drive it in a real browser (searching, the chart, accessibility scans in both themes, the security headers, a phone-sized screen).
+
 ## What is measured so far (no model, all 150 questions)
 
 Does the page FinanceBench marks as the evidence appear in the top 10 results? Plain BM25 on the question text, over the 360 filings in the corpus (53,399 pages):
@@ -23,7 +33,7 @@ Things worth knowing about these numbers:
 - **They are low for a real reason.** Searching with the gold evidence text itself finds its page at rank 1 for 97% of questions, so the page mapping and the index are right. Questions and filings use different words ("capital expenditure" against "Purchases of property, plant and equipment"), which is what embeddings and an agent that rewrites its query should recover.
 - **FinanceBench counts pages from 0.** I measured it on all 183 evidence records (every one is exactly one page later in a PDF viewer) instead of assuming; a test guards it. Assuming 1-based would have put every score off by one page.
 - **The filter** keeps the right filing for 148 of 150 questions and narrows to about 3 filings of 360. It recognised the company in 128 of 150 questions by name; five nicknames (AMEX, JnJ, JPM, MGM, Ulta) were added *after* seeing which questions failed, which brings it to 147 and makes the filtered figure a little optimistic for this benchmark. The two it loses: a forward-looking question that names 2023 but is answered by a Q4 2022 filing, and a Pfizer question that names 2019 and is answered by the 2021 filing.
-- Filtered retrieval stays well below "right filing given" because most questions name a company but no year, and the same company's filings from different years look almost identical to keyword search.
+- Filtered retrieval stays well below "right filing given", and the reason is not a missing year: 131 of the 150 questions name one. A year does not pin down one filing, because a company has a 10-K, 10-Qs, 8-Ks and earnings releases for the same year, so 90 of the 147 questions the filter recognises still have more than one candidate filing. Of the 20 questions the right filing alone gets right and the filter does not, 18 were crowded out by another filing of the same company. (An earlier draft of this README blamed questions with no year; I measured it and that was wrong.)
 
 ## How it works
 
@@ -62,6 +72,8 @@ git clone --depth 1 https://github.com/patronus-ai/financebench data/financebenc
 cd pipeline && ../.venv/Scripts/python -m pytest -q          # 128 tests, no data or keys needed
 ../.venv/Scripts/python -m footnote.evals retrieval --docs all   # no key; reads all the PDFs the first time, which takes a while
 ```
+
+The site: `cd web && npm install && npm run dev` (port 3050); `npm test` includes the parity test, `npm run e2e` the browser tests.
 
 Model runs need `GROQ_API_KEY` and/or `GEMINI_API_KEY` in a git-ignored `.env` (see `.env.example`); neither free tier asks for a card, and nothing in this project can bill anyone.
 
