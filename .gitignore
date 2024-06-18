@@ -6,7 +6,8 @@ __pycache__/
 .env
 node_modules/
 .next/
-# FinanceBench has no stated licence: used for evaluation, never redistributed. data/ holds the clone,
-# the extracted pages, the model cache, run files and scratch logs; none of it belongs in the repository.
-data/
+# FinanceBench has no stated licence: used for evaluation, never redistributed. The top-level data/
+# holds the clone, the extracted pages, the model cache, run files and scratch logs; none of it belongs
+# in the repository. (Anchored with a slash: web/public/data is the site's own data and IS committed.)
+/data/
 *.egg-info/
