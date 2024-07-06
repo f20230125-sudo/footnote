@@ -4,6 +4,8 @@ A filings analyst that answers questions about public companies and **cites the 
 
 The point of the project is the measurement, not the demo: every part (retrieval, the company filter, the typed and checked answer, the agent) is added one at a time and scored against the same questions, with intervals, because 150 questions is a small sample.
 
+**Live: https://footnote-ten.vercel.app** (search the filings in your browser, see the measurements)
+
 > **Status (11 Oct 2026): retrieval is measured; no language model has been run yet.** Everything below the retrieval table is built and tested against scripted fakes only. The first real model run will be the first test of the prompts. This README will be updated with real numbers, including any that come out badly.
 
 ## The site
@@ -73,7 +75,7 @@ cd pipeline && ../.venv/Scripts/python -m pytest -q          # 128 tests, no dat
 ../.venv/Scripts/python -m footnote.evals retrieval --docs all   # no key; reads all the PDFs the first time, which takes a while
 ```
 
-The site: `cd web && npm install && npm run dev` (port 3050); `npm test` includes the parity test, `npm run e2e` the browser tests.
+The site: `cd web && npm install && npm run dev` (port 3050); `npm test` includes the parity test, `npm run e2e` the browser tests. The same browser tests run against the live site with `BASE_URL=https://footnote-ten.vercel.app npm run e2e` (24 passed on 11 Oct 2026).
 
 Model runs need `GROQ_API_KEY` and/or `GEMINI_API_KEY` in a git-ignored `.env` (see `.env.example`); neither free tier asks for a card, and nothing in this project can bill anyone.
 
