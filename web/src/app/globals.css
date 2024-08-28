@@ -1,85 +1,85 @@
 @import "tailwindcss";
 
-/* Colours are named by role, not by shade. Each role has a light and a dark
-   value; components only ever use the role. The text colours (fg, muted, faint)
-   keep a contrast of at least 4.5:1 on every background they sit on, which the
-   accessibility tests check in both themes. Same roles as Hindsight, Sayso and
-   Flowboard, so the apps read as one family. */
+/* "The leaf and its footnote": see DESIGN.md. Colours are named by role. Each
+   role has a light and a dark value, and components only ever use the role.
+   Text roles (ink, ink-2, ink-3) keep at least 4.5:1 on every ground they sit
+   on, which the accessibility tests check in both themes.
+   Pink (--mark) is a fill for a word of the question found on a page, its
+   swatch in a note, and the logo's foot line. Nothing else. */
 :root,
 [data-theme="light"] {
-  --bg: #f4f5f7;
-  --surface: #ffffff;
-  --surface-2: #eef0f3;
-  --line: #dfe3e8;
-  --line-strong: #c5cbd3;
-  --fg: #14171c;
-  --muted: #4a5361;
-  --faint: #616a76;
-  --accent: #4f4fd1;
-  --accent-fg: #ffffff;
-  --accent-soft: #e9e9fd;
-  --ok: #15803d;
-  --warn: #b45309;
-  --bad: #c81e1e;
-  /* Three series colours, from the validated reference palette (slots 1 to 3),
-     one for each way of searching on the Results page. */
-  --series-1: #2a78d6;
-  --series-2: #eb6834;
-  --series-3: #1baf7a;
-  /* The highlight on a word of the question found in a page. */
-  --mark: #fff0a8;
-  --mark-fg: #3d2f00;
-  --shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 4px 12px rgb(16 24 40 / 0.06);
+  --ground: #f3ecf0; /* the page, the header, the footer */
+  --leaf: #fffcfd; /* a page of a filing, a field: the only ground for verbatim text */
+  --leaf-2: #f8f1f5; /* hover on a link row, the recess under an opened page */
+  --ink: #22151d;
+  --ink-2: #51424b;
+  --ink-3: #675763;
+  --rule: #dccfd7; /* decoration only */
+  --edge: #8a7685; /* the border of a field: must be found (3:1) */
+  --mark: #ffb3d9;
+  --mark-ink: #22151d;
+  --bar-mid: #7d6a76; /* the middle value of the three-step charts */
+  --alert: #a8231b;
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --bg: #0b0d10;
-  --surface: #14171c;
-  --surface-2: #1b1f26;
-  --line: #262b34;
-  --line-strong: #3a414d;
-  --fg: #e8eaee;
-  --muted: #aab2bd;
-  --faint: #8b94a1;
-  --accent: #9090f8;
-  --accent-fg: #0b0d10;
-  --accent-soft: #20203f;
-  --ok: #3ddc97;
-  --warn: #f5b942;
-  --bad: #ff7b7b;
-  --series-1: #3987e5;
-  --series-2: #d95926;
-  --series-3: #199e70;
-  --mark: #5c4a00;
-  --mark-fg: #fff3c4;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 16px rgb(0 0 0 / 0.35);
+  --ground: #251b23;
+  --leaf: #322730;
+  --leaf-2: #3d3139;
+  --ink: #f6eef2;
+  --ink-2: #d6c8d1;
+  --ink-3: #b5a5b0;
+  --rule: #4b3e47;
+  --edge: #917d89;
+  --mark: #8c2c61;
+  --mark-ink: #fff4fa;
+  --bar-mid: #a58f9c;
+  --alert: #ff9d95;
   color-scheme: dark;
 }
 
+/* Shape, space and time. */
+:root {
+  --radius-leaf: 0px; /* paper is square; the dog-ear below is the one exception */
+  --dog-ear: 18px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --col-main: 720px;
+  --col-margin: 304px;
+  --col-gap: 56px;
+  --dur-hover: 150ms;
+  --dur-state: 200ms;
+  --dur-resort: 260ms;
+}
+
 @theme inline {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
-  --color-fg: var(--fg);
-  --color-muted: var(--muted);
-  --color-faint: var(--faint);
-  --color-accent: var(--accent);
-  --color-accent-fg: var(--accent-fg);
-  --color-accent-soft: var(--accent-soft);
-  --color-ok: var(--ok);
-  --color-warn: var(--warn);
-  --color-bad: var(--bad);
-  --color-series-1: var(--series-1);
-  --color-series-2: var(--series-2);
-  --color-series-3: var(--series-3);
+  --color-ground: var(--ground);
+  --color-leaf: var(--leaf);
+  --color-leaf-2: var(--leaf-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-edge: var(--edge);
   --color-mark: var(--mark);
-  --color-mark-fg: var(--mark-fg);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --shadow-panel: var(--shadow);
+  --color-mark-ink: var(--mark-ink);
+  --color-bar-mid: var(--bar-mid);
+  --color-alert: var(--alert);
+  --font-sans: var(--font-franklin), "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-verbatim), ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+/* Not inline, so the radii are also real custom properties for the plain CSS below. */
+@theme {
+  --radius-field: 4px; /* fields, selects, buttons, the checkbox is 2 */
+  --radius-mark: 2px; /* the fill behind a marked word */
 }
 
 html,
@@ -88,83 +88,524 @@ body {
 }
 
 body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  background: var(--ground);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.5;
   text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--accent) 28%, transparent);
+  background: color-mix(in oklab, var(--ink) 22%, transparent);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--line-strong) transparent;
+  scrollbar-color: var(--edge) transparent;
 }
 
-/* One focus ring everywhere, visible on both themes. */
+/* One focus ring everywhere: ink, two pixels, two pixels out. Visible on both
+   grounds and on the primary button's ink fill. */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
+}
+
+main:focus {
+  outline: none;
 }
 
 .tabular {
   font-variant-numeric: tabular-nums;
 }
 
-/* The small label above a thing: "THE PAGE BENCHMARK POINTS TO". */
-.eyebrow {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-/* The card everything sits in. */
-.panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  box-shadow: var(--shadow);
-}
-
-/* A word of the question found on a page. */
-mark {
+/* A word of the question found on a page: pink fill and bold, so the fill is
+   emphasis and never the only signal. A weight change in a monospace face moves no letter. */
+mark,
+.swatch {
   background: var(--mark);
-  color: var(--mark-fg);
-  border-radius: 3px;
+  color: var(--mark-ink);
+  border-radius: var(--radius-mark);
   padding: 0 1px;
+  font-weight: 600;
 }
 
-/* A page of a filing, as the PDF's text came out: lines kept, never wrapped into a table. */
-.page-text {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 12px;
-  line-height: 1.55;
+.swatch {
+  padding: 0 4px;
+  font-weight: 700;
 }
 
-@keyframes rise-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
+@layer components {
+  /* ---- type ---- */
+  .h1 {
+    font-size: clamp(34px, 4vw + 14px, 54px);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.025em;
   }
-  to {
+
+  .h1-compact {
+    font-size: clamp(30px, 2vw + 20px, 40px);
+  }
+
+  .h2 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .h3 {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .dek {
+    font-size: 15.5px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    max-width: 64ch;
+  }
+
+  .prose-text {
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 72ch;
+  }
+
+  /* A note in the margin: a run-in head in bold, then the sentence. */
+  .note {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+
+  .note strong,
+  .run-in {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .field-label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .hint {
+    margin-top: var(--space-2);
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+
+  /* ---- links and buttons ---- */
+  .tlink {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    border-radius: var(--radius-mark);
+    transition: background-color var(--dur-hover) ease-out;
+  }
+
+  .tlink:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    height: 48px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-field);
+    background: var(--ink);
+    padding: 0 var(--space-5);
+    color: var(--leaf);
+    font-size: 15px;
+    font-weight: 600;
+    transition: background-color var(--dur-hover) ease-out;
+  }
+
+  .btn-primary:hover {
+    background: var(--ink-2);
+  }
+
+  @media (min-width: 640px) {
+    .btn-primary {
+      height: 44px;
+      width: auto;
+    }
+  }
+
+  .field {
+    width: 100%;
+    border: 1px solid var(--edge);
+    border-radius: var(--radius-field);
+    background: var(--leaf);
+    color: var(--ink);
+  }
+
+  .field::placeholder {
+    color: var(--ink-3);
     opacity: 1;
-    transform: none;
+  }
+
+  /* ---- the leaf: a page of a filing ---- */
+  .leaf {
+    position: relative;
+    background: var(--leaf);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-leaf);
+    padding: 20px;
+  }
+
+  @media (min-width: 640px) {
+    .leaf {
+      padding: var(--space-5);
+    }
+  }
+
+  /* The page FinanceBench marks gets a cut corner, folded over in edge. */
+  .leaf[data-gold] {
+    clip-path: polygon(0 0, calc(100% - var(--dog-ear)) 0, 100% var(--dog-ear), 100% 100%, 0 100%);
+  }
+
+  .leaf[data-gold]::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: var(--dog-ear);
+    height: var(--dog-ear);
+    background: linear-gradient(to top right, var(--edge) 50%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .folio {
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (min-width: 640px) {
+    .folio {
+      font-size: 46px;
+    }
+  }
+
+  /* A page of a filing, as the PDF's text came out: lines kept, never wrapped into a table. */
+  .page-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+
+  /* Opened in full, a long page scrolls inside its own recess. */
+  .page-text-open {
+    max-height: 30rem;
+    overflow-y: auto;
+    background: var(--leaf-2);
+    padding: var(--space-3);
+    font-size: 13px;
+  }
+
+  /* The footnote rule: above a citation, and above the limits at the foot of Results. Nothing else uses it. */
+  .footnote-rule {
+    width: 96px;
+    height: 1.5px;
+    background: var(--ink);
+  }
+
+  /* ---- the page and its margin ---- */
+  .notes-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-5);
+  }
+
+  .nl-margin {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .nl-intro,
+  .nl-limits,
+  .nl-ask,
+  .nl-main,
+  .nl-body {
+    min-width: 0;
+  }
+
+  /* Between a phone and the full margin: the options sit in two columns so the page is not a long single stack. */
+  @media (min-width: 640px) and (max-width: 1023.98px) {
+    .nl-margin {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--space-5);
+    }
+
+    .nl-m-examples {
+      grid-row: span 2;
+    }
+
+    .nl-m-wide {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .notes-layout {
+      grid-template-columns: minmax(0, var(--col-main)) var(--col-margin);
+      column-gap: var(--col-gap);
+      justify-content: center;
+    }
+
+    .nl-intro {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .nl-limits {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: start;
+      padding-top: var(--space-3);
+    }
+
+    .nl-ask {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .nl-body {
+      grid-column: 1;
+      grid-row: 2;
+    }
+
+    .nl-main {
+      grid-column: 1;
+      grid-row: 3;
+    }
+
+    /* The margin stays beside the list while it is read, so the options can be changed in view. */
+    .nl-margin {
+      grid-column: 2;
+      grid-row: 2 / span 2;
+      align-self: start;
+      position: sticky;
+      top: 4.5rem;
+      max-height: calc(100dvh - 5.5rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 2px;
+    }
+  }
+
+  /* ---- the readout on Results: the same three columns at two sizes ---- */
+  .res-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-5);
+  }
+
+  .res-fig {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* On a phone the columns lie down: the figure, then a bar from the left rule, 0 to 100% of the width. */
+  .res-plot {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: var(--space-3) 0;
+    padding-left: var(--space-3);
+    border-left: 1.5px solid var(--ink);
+  }
+
+  .res-bar {
+    display: block;
+    width: calc(var(--v) * 100%);
+    height: 20px;
+    min-width: 2px;
+  }
+
+  .res-bar[data-k="full"],
+  .res-key[data-k="full"] {
+    background: var(--ink);
+  }
+
+  .res-bar[data-k="filtered"],
+  .res-key[data-k="filtered"] {
+    background: var(--bar-mid);
+  }
+
+  .res-bar[data-k="oracle"],
+  .res-key[data-k="oracle"] {
+    border: 2px solid var(--ink);
+    background: transparent;
+  }
+
+  .res-key {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: var(--space-2);
+    vertical-align: -1px;
+  }
+
+  @media (min-width: 640px) {
+    .res-cols {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 0;
+    }
+
+    .res-col {
+      padding-right: var(--space-5);
+    }
+
+    .res-fig {
+      font-size: 88px;
+    }
+
+    /* The figure stands on its column, so the numbers rise like the bars. 240px is 100%. */
+    .res-plot {
+      height: calc(100px + var(--res-max, 1) * 240px);
+      justify-content: flex-end;
+      align-items: flex-start;
+      gap: var(--space-3);
+      padding-left: 0;
+      border-left: 0;
+      border-bottom: 1.5px solid var(--ink);
+    }
+
+    .res-bar {
+      width: 100%;
+      max-width: 112px;
+      height: calc(var(--v) * 240px);
+      min-height: 2px;
+      min-width: 0;
+    }
+  }
+
+  .mini-row {
+    display: grid;
+    height: 124px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: var(--space-4);
+    align-items: end;
+    border-bottom: 1.5px solid var(--ink);
+  }
+
+  .mini-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+  }
+
+  .mini-bar {
+    display: block;
+    width: 100%;
+    max-width: 56px;
+    height: calc(var(--v) * 96px);
+    min-height: 2px;
+  }
+
+  /* ---- a drawn square for a state: filled, half, hollow. The words say it too. ---- */
+  .state-sq {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border: 1.5px solid var(--ink);
+    vertical-align: -1px;
+  }
+
+  .state-sq[data-s="full"] {
+    background: var(--ink);
+  }
+
+  .state-sq[data-s="half"] {
+    background: linear-gradient(to right, var(--ink) 50%, transparent 50%);
+  }
+
+  /* The path of a question: five stops on one line, three filled, two hollow. */
+  .path {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-3);
+  }
+
+  .path li {
+    position: relative;
+    display: flex;
+    min-height: 28px;
+    align-items: flex-start;
+    gap: var(--space-3);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  @media (min-width: 640px) {
+    .path {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      column-gap: var(--space-4);
+    }
+
+    .path li {
+      flex-direction: column;
+      gap: var(--space-3);
+      padding-right: var(--space-3);
+    }
+
+    .path li::before {
+      content: "";
+      position: absolute;
+      top: 6px;
+      left: 14px;
+      right: 0;
+      height: 1.5px;
+      background: var(--ink);
+    }
+
+    .path li[data-run="no"]::before {
+      background: var(--edge);
+    }
+
+    .path li:last-child::before {
+      display: none;
+    }
+
+    .path li .state-sq {
+      position: relative;
+      z-index: 1;
+      background-clip: padding-box;
+    }
   }
 }
 
-.rise-in {
-  animation: rise-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
+/* Reduced motion: nothing moves. The re-sort checks this too, because a delayed transform would still run. */
 @media (prefers-reduced-motion: reduce) {
-  .rise-in {
-    animation: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
