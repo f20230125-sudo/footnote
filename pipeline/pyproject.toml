@@ -34,3 +34,6 @@ select = ["E", "F", "I", "B", "UP"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/footnote/prompts.py" = ["E501"]  # prose, kept on long lines so a diff shows the whole sentence
+"src/footnote/judge.py" = ["E501"]  # the judge prompt is prose too
+"src/footnote/settings.py" = ["E501"]  # comments naming where the real limits can be read
+"tests/*" = ["E501"]  # fixtures and aligned tables

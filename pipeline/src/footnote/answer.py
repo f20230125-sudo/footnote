@@ -28,12 +28,13 @@ class Answer(BaseModel):
     citations: list[Citation] = Field(default_factory=list)
     confidence: Literal["high", "medium", "low"] = "medium"
     refused: bool = False
+    closed_book: bool = False  # the C0 baseline answers from memory, so it has nothing to cite
 
     @model_validator(mode="after")
     def _needs_evidence(self) -> Answer:
         if not self.answer.strip():
             raise ValueError("answer is empty")
-        if not self.refused and not self.citations:
+        if not self.refused and not self.closed_book and not self.citations:
             raise ValueError("an answer must cite at least one page, or set refused to true")
         return self
 
