@@ -31,6 +31,7 @@ class Step:
     prompt_tokens: int = 0
     completion_tokens: int = 0
     cached: bool = False
+    duration_ms: int = 0  # for a cached model call, the provider's original latency
 
 
 def step_to_dict(s: Step) -> dict[str, Any]:
@@ -42,6 +43,7 @@ def step_to_dict(s: Step) -> dict[str, Any]:
         "prompt_tokens": s.prompt_tokens,
         "completion_tokens": s.completion_tokens,
         "cached": s.cached,
+        "duration_ms": s.duration_ms,
     }
 
 

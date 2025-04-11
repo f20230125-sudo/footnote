@@ -266,3 +266,19 @@ def test_gemini_embeddings_are_batched_by_100():
     g = Gemini("k", httpx.Client(transport=httpx.MockTransport(handler)))
     out = g.embed("gemini-embedding-001", ["t"] * 250, task="RETRIEVAL_DOCUMENT")
     assert sizes == [100, 100, 50] and len(out) == 250
+
+
+def test_a_cached_reply_keeps_the_latency_of_the_call_that_made_it():
+    clock, store = Clock(), Store(":memory:")
+
+    class Slow(Fake):
+        def chat(self, *a, **kw):
+            c = super().chat(*a, **kw)
+            return Completion(
+                c.text, c.prompt_tokens, c.completion_tokens, c.model, latency_ms=1234
+            )
+
+    llm = LLM([make(clock, store, Slow("a", ["x"]))], store, sleep=clock.sleep)
+    fresh, again = llm.complete(MSG), llm.complete(MSG)
+    assert (fresh.cached, fresh.latency_ms) == (False, 1234)
+    assert (again.cached, again.latency_ms) == (True, 1234)
