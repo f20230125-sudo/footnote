@@ -1,45 +1,59 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useState } from "react";
 import type { Results, Table } from "@/lib/data";
 
 type Setting = "full" | "filtered" | "oracle";
 
 // Fixed order, and each keeps its colour whatever else is shown: the colour
-// follows the way of searching, never its rank.
-const SERIES: Array<{ key: Setting; label: string; short: string; color: string }> = [
-  { key: "full", label: "Search all 360 filings", short: "All filings", color: "var(--series-1)" },
-  { key: "filtered", label: "+ company and year filter", short: "With filter", color: "var(--series-2)" },
-  { key: "oracle", label: "Right filing given (a ceiling)", short: "Right filing", color: "var(--series-3)" },
+// follows the way of searching, never its rank. The words always say it too.
+const SERIES: Array<{ key: Setting; label: string; short: string; note: string; color: string }> = [
+  { key: "full", label: "Search all 360 filings", short: "All filings", note: "Keywords only, no help.", color: "var(--series-1)" },
+  { key: "filtered", label: "+ company and year filter", short: "With filter", note: "First pick the filings that fit the company and year in the question.", color: "var(--series-2)" },
+  { key: "oracle", label: "Right filing given (a ceiling)", short: "Right filing", note: "Told which filing to look in: the best this search can do.", color: "var(--series-3)" },
 ];
 
 const KS = ["1", "3", "5", "10"] as const;
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 
-// Chart geometry, in SVG units; the SVG scales to its container.
-const W = 760;
-const H = 300;
-const LEFT = 44;
-const RIGHT = 12;
-const TOP = 22;
-const BOTTOM = 56;
-const PLOT_H = H - TOP - BOTTOM;
-const BAR = 40;
-const GAP = 2; // a 2px surface gap between neighbouring fills
-const R = 4;
-
-/** A bar that is square at the baseline and rounded at the data end. */
-function barPath(x: number, y: number, w: number, base: number): string {
-  const h = base - y;
-  const r = Math.min(R, h, w / 2);
-  if (r <= 0) return `M${x},${base - 1}H${x + w}V${base}H${x}Z`;
-  return `M${x},${base}V${y + r}a${r},${r} 0 0 1 ${r},${-r}H${x + w - r}a${r},${r} 0 0 1 ${r},${r}V${base}Z`;
-}
-
 function groupName(key: string): string {
   return key === "all" ? "All questions" : key;
 }
+
+const TERMS: Array<{ term: string; means: string }> = [
+  {
+    term: "FinanceBench",
+    means:
+      "A public set of 150 questions about real company filings. For each, experts marked the page that holds the evidence. That marked page is what this site tries to find.",
+  },
+  {
+    term: "Filing",
+    means:
+      "A document a company publishes about its finances: a 10-K (annual report), a 10-Q (quarterly report), an 8-K (a report of one event) or an earnings release.",
+  },
+  {
+    term: "Top 10",
+    means: "Whether the marked page is among the first 10 pages the search returns. “Top 1” is the strictest: the very first result.",
+  },
+  {
+    term: "Keyword search (BM25)",
+    means: "Ranks pages by how well their words match the question's words, giving rare words more weight. It does not understand meaning.",
+  },
+  {
+    term: "Company and year filter",
+    means: "A rule that reads the company and year in the question and searches only the filings that fit, so a Best Buy question is not answered from an AMD page.",
+  },
+  {
+    term: "Ceiling",
+    means: "The score when the search is told the right filing. No setting without that help can beat it, so it shows how much of the difficulty is the search itself.",
+  },
+  {
+    term: "MRR",
+    means: "Mean reciprocal rank: 1 divided by the rank of the first marked page (1 for first, ½ for second, ⅓ for third), averaged over the questions. Higher is better, at most 1.",
+  },
+];
 
 export function ResultsView({ results }: { results: Results }) {
   const [k, setK] = useState<(typeof KS)[number]>("10");
@@ -48,10 +62,6 @@ export function ResultsView({ results }: { results: Results }) {
     { key: "all", n: results.questions, tables: results.overall },
     ...Object.entries(results.byType).map(([key, tables]) => ({ key, n: tables.oracle.n, tables })),
   ];
-  const slot = (W - LEFT - RIGHT) / groups.length;
-  const cluster = SERIES.length * BAR + (SERIES.length - 1) * GAP;
-  const base = TOP + PLOT_H;
-  const y = (v: number) => base - v * PLOT_H;
 
   const all = results.overall;
   const full = all.full.hit[k];
@@ -67,30 +77,26 @@ export function ResultsView({ results }: { results: Results }) {
         <p className="max-w-[70ch] text-[15px] leading-relaxed text-muted">
           FinanceBench has {results.questions} questions about real filings, and for each it marks the page that holds the evidence. Here, a plain keyword
           search (BM25) reads the question and ranks the pages of {results.corpus.filings} filings ({results.corpus.pages.toLocaleString("en-US")} pages). The
-          score is how often a marked page is among the first few results. No language model is involved.
+          score is how often a marked page is among the first few results. No language model is involved.{" "}
+          <a href="#words" className="font-medium text-accent underline underline-offset-2">
+            New to these terms? See what they mean.
+          </a>
         </p>
       </section>
 
-      <section aria-labelledby="chart-heading" className="panel space-y-4 p-4 sm:p-6">
+      <section aria-labelledby="chart-heading" className="panel space-y-5 p-4 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 id="chart-heading" className="text-lg font-semibold tracking-tight">
               Is the evidence page in the top {k} results?
             </h2>
-            <p className="mt-1 text-[13px] text-muted">Share of questions, by FinanceBench&rsquo;s question types.</p>
+            <p className="mt-1 text-[13px] text-muted">Share of questions where it is. Choose how many results count:</p>
           </div>
           <fieldset className="flex items-center gap-1 rounded-xl border border-line bg-bg p-1">
             <legend className="sr-only">How many results count</legend>
             {KS.map((value) => (
               <label key={value} className="cursor-pointer">
-                <input
-                  type="radio"
-                  name={kId}
-                  value={value}
-                  checked={k === value}
-                  onChange={() => setK(value)}
-                  className="peer sr-only"
-                />
+                <input type="radio" name={kId} value={value} checked={k === value} onChange={() => setK(value)} className="peer sr-only" />
                 <span className="inline-flex h-8 min-w-12 items-center justify-center rounded-lg px-3 text-[13px] font-medium text-muted transition-colors peer-checked:bg-surface peer-checked:text-fg peer-checked:shadow-sm peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-accent">
                   top {value}
                 </span>
@@ -99,59 +105,54 @@ export function ResultsView({ results }: { results: Results }) {
           </fieldset>
         </div>
 
-        <ul className="flex flex-wrap gap-x-5 gap-y-2" aria-label="Legend">
+        {/* The headline, in three numbers; they double as the key to the colours below. */}
+        <ul aria-label={`All ${results.questions} questions`} className="grid gap-3 sm:grid-cols-3">
           {SERIES.map((s) => (
-            <li key={s.key} className="flex items-center gap-2 text-[13px]">
-              <span aria-hidden="true" className="h-3 w-3 rounded-[3px]" style={{ background: s.color }} />
-              {s.label}
+            <li key={s.key} className="rounded-xl border border-line bg-bg p-3.5">
+              <p className="flex items-center gap-2 text-[12.5px] font-medium">
+                <span aria-hidden="true" className="h-3 w-3 shrink-0 rounded-[3px]" style={{ background: s.color }} />
+                {s.label}
+              </p>
+              <p className="tabular mt-1 text-3xl font-semibold tracking-tight">{pct(all[s.key].hit[k])}</p>
+              <p className="mt-0.5 text-[12.5px] leading-snug text-muted">{s.note}</p>
             </li>
           ))}
         </ul>
 
-        {/* On a phone the chart keeps a readable size and scrolls sideways, instead of shrinking its labels to nothing. */}
-        <div className="-mx-1 overflow-x-auto px-1">
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          role="img"
-          aria-label={`Bar chart: share of questions whose evidence page is in the top ${k} results, for three ways of searching, over ${groups.length} groups of questions. The table below has every number.`}
-          className="h-auto w-full min-w-[620px]"
-        >
-          {[0, 0.25, 0.5, 0.75, 1].map((t) => (
-            <g key={t}>
-              <line x1={LEFT} x2={W - RIGHT} y1={y(t)} y2={y(t)} stroke="var(--line)" strokeWidth={t === 0 ? 1.5 : 1} />
-              <text x={LEFT - 8} y={y(t) + 4} textAnchor="end" fontSize="11" fill="var(--faint)">
-                {pct(t)}
-              </text>
-            </g>
-          ))}
-          {groups.map((g, gi) => {
-            const x0 = LEFT + gi * slot + (slot - cluster) / 2;
-            return (
-              <g key={g.key}>
-                {SERIES.map((s, si) => {
-                  const v = g.tables[s.key].hit[k];
-                  const x = x0 + si * (BAR + GAP);
-                  return (
-                    <g key={s.key}>
-                      <path d={barPath(x, y(v), BAR, base)} fill={s.color}>
-                        <title>{`${groupName(g.key)}, ${s.label}: ${pct(v)} of ${g.n} questions`}</title>
-                      </path>
-                      <text x={x + BAR / 2} y={y(v) - 6} textAnchor="middle" fontSize="12" fontWeight="600" fill="var(--fg)">
-                        {pct(v)}
-                      </text>
-                    </g>
-                  );
-                })}
-                <text x={LEFT + gi * slot + slot / 2} y={base + 20} textAnchor="middle" fontSize="12.5" fontWeight="500" fill="var(--fg)">
-                  {groupName(g.key)}
-                </text>
-                <text x={LEFT + gi * slot + slot / 2} y={base + 36} textAnchor="middle" fontSize="11" fill="var(--faint)">
-                  {g.n} questions
-                </text>
-              </g>
-            );
-          })}
-        </svg>
+        <p className="max-w-[72ch] text-[14px] leading-relaxed">
+          <strong className="font-semibold">In plain words:</strong> given only the question, keyword search puts a page FinanceBench marks into the top {k} for{" "}
+          {pct(full)} of questions. Picking the right company and year first lifts that to {pct(filtered)}. Even told the exact filing, it reaches only{" "}
+          {pct(ceiling)}, so a large part of the weakness is vocabulary: questions and filings use different words (more below).
+        </p>
+
+        <div>
+          <h3 className="mb-3 text-[13.5px] font-semibold">By type of question</h3>
+          <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
+            {groups.map((g) => (
+              <div key={g.key} role="group" aria-labelledby={`${kId}-${g.key}`}>
+                <h4 id={`${kId}-${g.key}`} className="text-[13px] font-semibold">
+                  {groupName(g.key)} <span className="font-normal text-faint">· {g.n} questions</span>
+                </h4>
+                <ul className="mt-2 space-y-1.5">
+                  {SERIES.map((s) => {
+                    const v = g.tables[s.key].hit[k];
+                    return (
+                      <li key={s.key} className="grid grid-cols-[6.25rem_1fr_2.75rem] items-center gap-2 text-[12.5px] sm:grid-cols-[6.75rem_1fr_2.75rem]">
+                        <span className="text-muted">{s.short}</span>
+                        <span aria-hidden="true" className="h-3.5 overflow-hidden rounded-full bg-surface-2">
+                          <span
+                            className="block h-full rounded-full motion-safe:transition-[width] motion-safe:duration-300"
+                            style={{ width: `${Math.max(v * 100, v > 0 ? 1.5 : 0)}%`, background: s.color }}
+                          />
+                        </span>
+                        <span className="tabular text-right font-semibold">{pct(v)}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -191,11 +192,33 @@ export function ResultsView({ results }: { results: Results }) {
         </ul>
       </section>
 
+      <section id="words" aria-labelledby="words-heading" className="scroll-mt-20 space-y-3">
+        <h2 id="words-heading" className="text-lg font-semibold tracking-tight">
+          What the words mean
+        </h2>
+        <dl className="grid max-w-[78ch] gap-x-6 gap-y-3 text-[14px] leading-relaxed sm:grid-cols-[11rem_1fr]">
+          {TERMS.map((t) => (
+            <div key={t.term} className="contents">
+              <dt className="font-semibold">{t.term}</dt>
+              <dd className="mb-2 text-muted sm:mb-0">{t.means}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="text-[13px] text-muted">
+          More on how each part works, and which parts have not been run, is on{" "}
+          <Link href="/how" className="font-medium text-accent underline underline-offset-2">
+            How it works
+          </Link>
+          .
+        </p>
+      </section>
+
       <section aria-labelledby="table-heading" className="space-y-3">
         <h2 id="table-heading" className="text-lg font-semibold tracking-tight">
           Every number
         </h2>
-        <div className="panel overflow-x-auto">
+        <p className="text-[12.5px] text-faint sm:hidden">The table is wider than the screen: swipe it sideways to see every column.</p>
+        <div className="panel overflow-x-auto" tabIndex={0} role="region" aria-label="Table of every number; scrolls sideways">
           <table className="tabular w-full min-w-[640px] border-collapse text-left text-[13px]">
             <caption className="sr-only">Share of questions whose evidence page is among the top results, and mean reciprocal rank, by question group and way of searching.</caption>
             <thead>

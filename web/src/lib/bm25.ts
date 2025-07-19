@@ -44,6 +44,12 @@ export class BM25 {
     return Math.log(1 + (this.n - df + 0.5) / (df + 0.5));
   }
 
+  /** How many documents contain the term (only counting the allowed ones, when given). Display only. */
+  count(term: string, allowed?: Set<number> | null): number {
+    const list = this.postings.get(term) ?? [];
+    return allowed ? list.reduce((n, [i]) => n + (allowed.has(i) ? 1 : 0), 0) : list.length;
+  }
+
   scores(query: string[], allowed?: Set<number> | null): Map<number, number> {
     const out = new Map<number, number>();
     // A fixed term order, as in Python, so the floating-point sums come out the same.
