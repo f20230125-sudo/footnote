@@ -1,13 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Libre_Franklin, Red_Hat_Mono } from "next/font/google";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ThemeProvider } from "@/components/theme";
 import { THEME_SCRIPT } from "@/components/themeScript";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+// Everything the site says is Libre Franklin (one variable file, weights 100 to 900).
+// Red Hat Mono is used only for the text of a filing page exactly as extracted.
+// Both are downloaded at build and served from this site: the content policy allows no other.
+const franklin = Libre_Franklin({ variable: "--font-franklin", subsets: ["latin"], display: "swap" });
+const verbatim = Red_Hat_Mono({
+  variable: "--font-verbatim",
+  subsets: ["latin"],
+  display: "swap",
+  fallback: ["ui-monospace", "Cascadia Mono", "Consolas", "monospace"],
+});
 
 const TITLE = "Footnote: the page behind the figure";
 const DESCRIPTION =
@@ -27,8 +35,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f5f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0d10" },
+    { media: "(prefers-color-scheme: light)", color: "#f3ecf0" },
+    { media: "(prefers-color-scheme: dark)", color: "#251b23" },
   ],
 };
 
@@ -36,7 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // The script below sets data-theme before React loads, so the attribute
     // differs from what the server sent. That is expected.
-    <html lang="en" data-theme="light" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="en" data-theme="light" suppressHydrationWarning className={`${franklin.variable} ${verbatim.variable} h-full font-sans antialiased`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
@@ -44,12 +52,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeProvider>
           <a
             href="#main"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-accent focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-accent-fg"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:inline-flex focus:min-h-11 focus:items-center focus:rounded-field focus:bg-ink focus:px-4 focus:text-[14px] focus:font-semibold focus:text-leaf"
           >
             Skip to the content
           </a>
           <Header />
-          <main id="main" className="mx-auto w-full max-w-[1100px] flex-1 px-4 pb-16 pt-8 sm:px-6">
+          <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1128px] flex-1 px-5 pb-16 pt-8 sm:px-6 lg:pt-10">
             {children}
           </main>
           <Footer />

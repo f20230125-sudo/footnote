@@ -5,14 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "./theme";
 
-/** A page with a small mark at its foot: the footnote. */
-export function Logo({ size = 18 }: { size?: number }) {
+/** A page with a short rule at its foot: the footnote. The foot line is the marker's pink. */
+export function Logo({ size = 20 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 18 18" aria-hidden="true" className="shrink-0">
-      <rect x="2" y="1.5" width="14" height="15" rx="2.5" fill="none" className="stroke-fg" strokeWidth="1.5" />
-      <line x1="5" y1="6" x2="13" y2="6" className="stroke-faint" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="5" y1="9" x2="11" y2="9" className="stroke-faint" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="5" y1="13" x2="9" y2="13" className="stroke-accent" strokeWidth="2" strokeLinecap="round" />
+    <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden="true" className="shrink-0">
+      <rect x="4" y="2.5" width="12" height="15" fill="none" className="stroke-ink" strokeWidth="1.5" />
+      <line x1="7" y1="6.5" x2="13" y2="6.5" className="stroke-ink-3" strokeWidth="1.5" />
+      <line x1="7" y1="9.5" x2="11.5" y2="9.5" className="stroke-ink-3" strokeWidth="1.5" />
+      <line x1="7" y1="13.5" x2="11" y2="13.5" className="stroke-mark" strokeWidth="2.5" />
     </svg>
   );
 }
@@ -27,13 +27,13 @@ export function Header() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur">
-      <div className="mx-auto flex h-14 w-full max-w-[1100px] items-center gap-2 px-3 sm:gap-6 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 rounded-md text-[15px] font-semibold tracking-tight sm:gap-2.5">
+    <header className="sticky top-0 z-30 border-b border-rule bg-ground">
+      <div className="mx-auto flex h-14 w-full max-w-[1128px] items-center gap-3 px-4 sm:gap-8 sm:px-6">
+        <Link href="/" className="flex h-11 items-center gap-2 text-[16px] font-extrabold tracking-tight">
           <Logo />
           Footnote
         </Link>
-        <nav aria-label="Main" className="flex items-center gap-1">
+        <nav aria-label="Main" className="flex h-full items-stretch gap-0.5 sm:gap-3">
           {LINKS.map((link) => {
             const current = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
             return (
@@ -41,7 +41,7 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 aria-current={current ? "page" : undefined}
-                className={`whitespace-nowrap rounded-lg px-2 py-1.5 text-[13px] font-medium transition-colors sm:px-2.5 ${current ? "bg-surface-2 text-fg" : "text-muted hover:bg-surface-2 hover:text-fg"}`}
+                className={`-mb-px inline-flex items-center whitespace-nowrap border-b-2 px-1.5 text-[13.5px] transition-colors duration-150 ease-out sm:px-2 sm:text-[14px] ${current ? "border-ink font-bold text-ink" : "border-transparent font-medium text-ink-2 hover:text-ink"}`}
               >
                 {link.label}
               </Link>
@@ -51,7 +51,7 @@ export function Header() {
         <div className="ml-auto flex items-center gap-1">
           <a
             href="https://github.com/f20230125-sudo/footnote"
-            className="hidden rounded-lg px-2 py-1.5 text-[13px] font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg sm:inline"
+            className="tlink hidden min-h-9 items-center px-2 text-[14px] font-medium text-ink-2 hover:text-ink sm:inline-flex"
           >
             GitHub
           </a>
@@ -60,9 +60,9 @@ export function Header() {
             aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
             title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
             onClick={toggleTheme}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-fg"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-field text-ink-2 transition-colors duration-150 ease-out hover:bg-leaf-2 hover:text-ink"
           >
-            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === "dark" ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
           </button>
         </div>
       </div>

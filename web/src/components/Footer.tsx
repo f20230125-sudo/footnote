@@ -1,12 +1,12 @@
 import Link from "next/link";
 
-const link = "rounded-md underline underline-offset-2 hover:text-fg";
+const link = "tlink inline-flex min-h-11 items-center hover:text-ink sm:min-h-8";
 
 export function Footer() {
   return (
-    <footer className="border-t border-line">
-      <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-3 px-4 py-8 text-[12.5px] leading-relaxed text-muted sm:px-6">
-        <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2 font-medium">
+    <footer className="border-t border-rule bg-ground">
+      <div className="mx-auto flex w-full max-w-[1128px] flex-col gap-3 px-5 py-8 text-[13.5px] leading-relaxed text-ink-2 sm:px-6">
+        <nav aria-label="Footer" className="flex flex-wrap gap-x-6 font-semibold">
           <Link href="/" className={link}>
             Search
           </Link>
@@ -22,7 +22,7 @@ export function Footer() {
         </nav>
         <p className="max-w-[78ch]">
           Filing text comes from the companies&rsquo; own public filings. The questions are from{" "}
-          <a href="https://github.com/patronus-ai/financebench" className={link}>
+          <a href="https://github.com/patronus-ai/financebench" className="tlink inline-block py-1.5 hover:text-ink">
             FinanceBench
           </a>{" "}
           (Patronus AI), used here to measure, not republished. This is an evaluation project, not investment advice, and the search can be wrong: check a
