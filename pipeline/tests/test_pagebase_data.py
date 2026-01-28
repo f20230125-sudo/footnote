@@ -24,7 +24,7 @@ def test_evidence_text_finds_its_own_page():
 
     def by_evidence(q):
         text = " ".join(e.text for e in q.evidence)[:2000]
-        return [h for h, _ in corpus.search(text, 10, doc=q.doc_name)]
+        return [h for h, _ in corpus.search(text, 10, docs=[q.doc_name])]
 
     s = score(qs, by_evidence)
     assert s.hit_at[3] >= 0.97, "page numbers are probably off by one again"
