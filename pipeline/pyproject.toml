@@ -31,3 +31,6 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/footnote/prompts.py" = ["E501"]  # prose, kept on long lines so a diff shows the whole sentence
