@@ -25,6 +25,7 @@ def call(
             prompt_tokens=c.prompt_tokens,
             completion_tokens=c.completion_tokens,
             cached=c.cached,
+            duration_ms=c.latency_ms,
         )
     )
     return c
