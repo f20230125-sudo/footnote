@@ -32,11 +32,113 @@ test.describe("search", () => {
     expect(await page.locator("article mark").count()).toBeGreaterThan(0);
   });
 
-  test("the button waits for a question", async ({ page }) => {
+  test("an empty question asks for one instead of doing nothing", async ({ page }) => {
     await ready(page);
-    await expect(page.getByRole("button", { name: "Find the pages" })).toBeDisabled();
+    const button = page.getByRole("button", { name: "Find the pages" });
+    await expect(button).toBeEnabled();
+    await button.click();
+    await expect(page.getByRole("alert").filter({ hasText: "Type a question first" })).toBeVisible();
+    await expect(page.getByLabel("Your question")).toBeFocused();
     await page.getByLabel("Your question").fill("revenue");
-    await expect(page.getByRole("button", { name: "Find the pages" })).toBeEnabled();
+    await expect(page.getByRole("alert").filter({ hasText: "Type a question first" })).toHaveCount(0);
+  });
+
+  test("Enter searches and Shift+Enter starts a new line", async ({ page }) => {
+    await ready(page);
+    const box = page.getByLabel("Your question");
+    await box.fill("AMD revenue");
+    await box.press("Shift+Enter");
+    await expect(box).toHaveValue("AMD revenue\n");
+    await expect(page.getByRole("article")).toHaveCount(0);
+    await box.press("Enter");
+    await expect(page.getByRole("heading", { name: /The 5 best pages/ })).toBeVisible();
+  });
+
+  test("an example is one click: it fills the box and shows where FinanceBench puts the answer", async ({ page }) => {
+    await ready(page);
+    await page.getByRole("group", { name: "Try an example" }).getByRole("button", { name: /Boeing/ }).click();
+    await expect(page.getByLabel("Your question")).toHaveValue(/Boeing/);
+    await expect(page.getByText("What FinanceBench says")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /The 5 best pages/ })).toBeVisible();
+  });
+
+  test("the results are brought into view and focused after a search", async ({ page }) => {
+    await ready(page);
+    await page.getByLabel("Your question").fill("AMD revenue by segment");
+    await page.getByRole("button", { name: "Find the pages" }).click();
+    const heading = page.getByRole("heading", { name: /The 5 best pages/ });
+    await expect(heading).toBeFocused();
+    await expect(heading).toBeInViewport();
+  });
+
+  test("a search lives in the address: it survives a reload, and the link can be copied", async ({ page, context, baseURL }) => {
+    await ready(page);
+    await page.getByLabel("Your question").fill("What did 3M report about litigation?");
+    await page.getByRole("button", { name: "Find the pages" }).click();
+    await expect(page.getByRole("heading", { name: /The 5 best pages/ })).toBeVisible();
+    await expect(page).toHaveURL(/\?q=What\+did\+3M\+report\+about\+litigation%3F/);
+
+    await page.getByLabel("Narrow by the company and year in the question").uncheck();
+    await expect(page).toHaveURL(/filter=off/);
+
+    await page.reload();
+    await expect(page.getByLabel("Your question")).toHaveValue("What did 3M report about litigation?");
+    await expect(page.getByLabel("Narrow by the company and year in the question")).not.toBeChecked();
+    await expect(page.getByRole("heading", { name: /The 5 best pages/ })).toBeVisible();
+
+    await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: new URL(baseURL!).origin });
+    await page.getByRole("button", { name: "Copy link to this search" }).click();
+    await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    expect(copied).toBe(page.url());
+
+    await page.getByRole("button", { name: "Start over" }).click();
+    await expect(page.getByLabel("Your question")).toHaveValue("");
+    await expect(page).not.toHaveURL(/q=/);
+  });
+
+  test("a card's citation can be copied", async ({ page, context, baseURL }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: new URL(baseURL!).origin });
+    await ready(page);
+    await page.getByLabel("Your question").fill("Best Buy capital expenditure fiscal 2023");
+    await page.getByRole("button", { name: "Find the pages" }).click();
+    const first = page.getByRole("article").first();
+    await first.getByRole("button", { name: "Copy citation" }).click();
+    await expect(first.getByRole("button", { name: "Copied" })).toBeVisible();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/^Best Buy, 10-K 2023, page \d+ \(https?:\/\//);
+  });
+
+  test("words found on most of the searched pages are left plain, and the page says so", async ({ page }) => {
+    await ready(page);
+    await page.getByLabel("Your question").fill("What was Best Buy's capital expenditure in fiscal 2023?");
+    await page.getByRole("button", { name: "Find the pages" }).click();
+    await expect(page.getByText(/left plain because they are on most of the pages searched/)).toBeVisible();
+    const marked = (await page.locator("article mark").allTextContents()).map((t) => t.toLowerCase());
+    expect(marked.length).toBeGreaterThan(0);
+    expect(marked).not.toContain("buy");
+    expect(marked.some((t) => t.startsWith("capital"))).toBe(true);
+  });
+
+  test("a question about another company says the demo does not hold it", async ({ page }) => {
+    await ready(page);
+    await page.getByLabel("Your question").fill("What was Apple's revenue in 2022?");
+    await page.getByRole("button", { name: "Find the pages" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "None of the demo's companies" })).toBeVisible();
+  });
+
+  test("the list of filings can be opened", async ({ page }) => {
+    await ready(page);
+    await page.getByText("Which filings can I ask about?").click();
+    await expect(page.getByRole("link", { name: /Open the filing for Best Buy/ })).toBeVisible();
+  });
+
+  test("a failed load can be retried", async ({ page }) => {
+    await page.route("**/data/filings.json", (route) => route.abort());
+    await page.goto("/");
+    await expect(page.getByRole("alert").filter({ hasText: /Could not|Failed|fetch/i })).toBeVisible();
+    await page.unroute("**/data/filings.json");
+    await page.getByRole("button", { name: "Try again" }).click();
+    await expect(page.getByLabel("Your question")).toBeVisible();
   });
 
   test("a benchmark question shows where FinanceBench says the answer is, and how this search ranks it", async ({ page }) => {
@@ -83,6 +185,7 @@ test.describe("search", () => {
     await page.getByLabel("Your question").fill("zzzzqqqq xxxxyyyy");
     await page.getByRole("button", { name: "Find the pages" }).click();
     await expect(page.getByRole("heading", { name: "No page matches" })).toBeVisible();
+    await expect(page.getByText("Some things to try")).toBeVisible();
   });
 
   test("the theme can be switched and is remembered", async ({ page }) => {
@@ -97,16 +200,36 @@ test.describe("search", () => {
 });
 
 test.describe("results", () => {
-  test("shows the chart, the legend and the table, and the depth can be changed", async ({ page }) => {
+  test("shows the headline numbers, the bars by question type and the table, and the depth can be changed", async ({ page }) => {
     await page.goto("/results");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("What has been measured");
     await expect(page.getByRole("heading", { name: /top 10 results/ })).toBeVisible();
-    await expect(page.getByRole("img", { name: /Bar chart/ })).toBeVisible();
-    await expect(page.getByRole("list", { name: "Legend" }).getByRole("listitem")).toHaveCount(3);
+    const tiles = page.getByRole("list", { name: "All 150 questions" }).getByRole("listitem");
+    await expect(tiles).toHaveCount(3);
+    await expect(tiles.nth(0)).toContainText("13%");
+    await expect(tiles.nth(1)).toContainText("31%");
+    await expect(tiles.nth(2)).toContainText("44%");
+    await expect(page.locator("p", { hasText: "In plain words" })).toContainText("13%");
+
+    // Every group of questions has its three bars, readable as text.
+    const groups = page.getByRole("group", { name: /questions$/ });
+    await expect(groups).toHaveCount(4);
+    await expect(groups.first()).toContainText("With filter");
+
     await page.locator("label", { hasText: "top 3" }).click();
     await expect(page.getByRole("heading", { name: /top 3 results/ })).toBeVisible();
+    await expect(tiles.nth(0)).toContainText("8%");
     await expect(page.getByRole("table")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Not measured yet" })).toBeVisible();
+  });
+
+  test("explains the words it uses", async ({ page }) => {
+    await page.goto("/results");
+    await page.getByRole("link", { name: /New to these terms/ }).click();
+    await expect(page.getByRole("heading", { name: "What the words mean" })).toBeInViewport();
+    for (const term of ["FinanceBench", "Top 10", "Keyword search (BM25)", "Ceiling", "MRR"]) {
+      await expect(page.getByRole("term").filter({ hasText: term })).toBeVisible();
+    }
   });
 
   test("the table's numbers are the ones in the chart's data", async ({ page }) => {
@@ -125,6 +248,23 @@ test.describe("how it works", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("How it works");
     await expect(page.getByRole("row", { name: /Judge/ })).toContainText("Built, not run");
     await expect(page.getByRole("row", { name: /Keyword search/ })).toContainText("Measured");
+  });
+
+  test("starts with a short summary and a way into the demo", async ({ page }) => {
+    await page.goto("/how");
+    await expect(page.getByRole("heading", { name: "In short" })).toBeVisible();
+    await page.getByRole("link", { name: "Try the search" }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Find the page behind the figure");
+  });
+
+  test("every page ends with the same footer", async ({ page }) => {
+    for (const path of ["/", "/results", "/how"]) {
+      await page.goto(path);
+      const footer = page.getByRole("contentinfo");
+      await expect(footer.getByRole("link", { name: "Code on GitHub" })).toBeVisible();
+      await expect(footer).toContainText("not investment advice");
+    }
   });
 
   test("an unknown address gives the 404 page", async ({ page }) => {
@@ -153,7 +293,7 @@ for (const theme of ["light", "dark"] as const) {
     test("results", async ({ page }) => {
       await page.goto("/results");
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-      await expect(page.getByRole("img", { name: /Bar chart/ })).toBeVisible();
+      await expect(page.getByRole("list", { name: "All 150 questions" })).toBeVisible();
       expect(await violations(page)).toEqual([]);
     });
 
@@ -216,6 +356,24 @@ test.describe("on a phone", () => {
       expect(box!.x + box!.width).toBeLessThanOrEqual(390);
     });
   }
+
+  test("all four groups of the results chart fit on the screen", async ({ page }) => {
+    await page.goto("/results");
+    const groups = page.getByRole("group", { name: /questions$/ });
+    await expect(groups).toHaveCount(4);
+    for (let i = 0; i < 4; i++) {
+      const box = await groups.nth(i).boundingBox();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+    }
+  });
+
+  test("tapping search brings the results onto the screen", async ({ page }) => {
+    await page.goto("/");
+    await page.getByLabel("Your question").fill("AMD revenue by segment");
+    await page.getByRole("button", { name: "Find the pages" }).click();
+    await expect(page.getByRole("heading", { name: /The 5 best pages/ })).toBeInViewport();
+  });
 
   test("a search result fits too", async ({ page }) => {
     await page.goto("/");
