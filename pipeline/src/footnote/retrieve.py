@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -36,8 +37,14 @@ class Corpus:
         i = self._key.get((doc, page))
         return self.pages[i] if i is not None else None
 
-    def search(self, query: str, k: int = 10, doc: str | None = None) -> list[tuple[Hit, float]]:
-        """BM25 over every page, or only over one filing when `doc` is given."""
-        allowed = self.by_doc[doc] if doc is not None else None
+    def search(
+        self, query: str, k: int = 10, docs: Iterable[str] | None = None
+    ) -> list[tuple[Hit, float]]:
+        """BM25 over every page, or only over the pages of the given filings."""
+        allowed = None
+        if docs is not None:
+            allowed = set().union(*(self.by_doc[d] for d in docs if d in self.by_doc))
+        if allowed is not None and not allowed:
+            return []
         top = self.bm25.top(tokenize(query), k, allowed)
         return [((self.pages[i].doc, self.pages[i].page), s) for i, s in top]
