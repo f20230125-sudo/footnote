@@ -75,7 +75,7 @@ cd pipeline && ../.venv/Scripts/python -m pytest -q          # 128 tests, no dat
 ../.venv/Scripts/python -m footnote.evals retrieval --docs all   # no key; reads all the PDFs the first time, which takes a while
 ```
 
-The site: `cd web && npm install && npm run dev` (port 3050); `npm test` includes the parity test, `npm run e2e` the browser tests. The same browser tests run against the live site with `BASE_URL=https://footnote-ten.vercel.app npm run e2e`.
+The site: `cd web && npm install && npm run dev` (port 3050); `npm test` includes the parity test, `npm run e2e` the browser tests. The same browser tests run against the live site with `BASE_URL=https://footnote-ten.vercel.app npm run e2e` (38 passed on 12 Oct 2026).
 
 Model runs need `GROQ_API_KEY` and/or `GEMINI_API_KEY` in a git-ignored `.env` (see `.env.example`); neither free tier asks for a card, and nothing in this project can bill anyone.
 
