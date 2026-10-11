@@ -186,11 +186,12 @@ test.describe("headers", () => {
     expect(pages.pages).toHaveLength(filings[0].pages);
   });
 
-  test("no request leaves the site while using it", async ({ page }) => {
+  test("no request leaves the site while using it", async ({ page, baseURL }) => {
+    const own = new URL(baseURL!).hostname;
     const outside: string[] = [];
     page.on("request", (r) => {
       const url = new URL(r.url());
-      if (!["localhost", "127.0.0.1"].includes(url.hostname) && url.protocol.startsWith("http")) outside.push(r.url());
+      if (url.hostname !== own && url.protocol.startsWith("http")) outside.push(r.url());
     });
     await ready(page);
     await page.getByLabel("Your question").fill("AMD revenue");
