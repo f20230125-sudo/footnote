@@ -10,6 +10,7 @@ import hashlib
 import json
 import sqlite3
 import time
+from array import array
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -44,6 +45,9 @@ class Store:
               prompt_tokens INTEGER NOT NULL, completion_tokens INTEGER NOT NULL,
               created REAL NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS embeddings (
+              key TEXT PRIMARY KEY, vector BLOB NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS daily (
               name TEXT NOT NULL, day TEXT NOT NULL,
               requests INTEGER NOT NULL DEFAULT 0, tokens INTEGER NOT NULL DEFAULT 0,
@@ -66,6 +70,26 @@ class Store:
         self.db.execute(
             "INSERT OR REPLACE INTO calls VALUES (?, ?, ?, ?, ?, ?)",
             (key, c.model, c.text, c.prompt_tokens, c.completion_tokens, time.time()),
+        )
+        self.db.commit()
+
+    def get_vectors(self, keys: list[str]) -> dict[str, array]:
+        out: dict[str, array] = {}
+        for i in range(0, len(keys), 500):
+            chunk = keys[i : i + 500]
+            marks = ",".join("?" * len(chunk))
+            for key, blob in self.db.execute(
+                f"SELECT key, vector FROM embeddings WHERE key IN ({marks})", chunk
+            ):
+                v = array("f")
+                v.frombytes(blob)
+                out[key] = v
+        return out
+
+    def put_vectors(self, items: dict[str, list[float]]) -> None:
+        self.db.executemany(
+            "INSERT OR REPLACE INTO embeddings VALUES (?, ?)",
+            [(k, array("f", v).tobytes()) for k, v in items.items()],
         )
         self.db.commit()
 

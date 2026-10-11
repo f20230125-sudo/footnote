@@ -1,4 +1,4 @@
-"""python -m footnote.evals retrieval [--docs needed|all]"""
+"""python -m footnote.evals retrieval | run | report"""
 
 from __future__ import annotations
 
@@ -11,14 +11,18 @@ from ..retrieve import Corpus
 from .retrieval import format_table, score
 
 
-def cmd_retrieval(args: argparse.Namespace) -> None:
+def _corpus(args: argparse.Namespace):
     qs = load_questions()
     infos = load_docs()
     needed = sorted({e.doc_name for q in qs for e in q.evidence})
     docs = needed if args.docs == "needed" else sorted({i.doc_name for i in infos} | set(needed))
     for d in docs:
         ingest(d)
-    corpus = Corpus(docs)
+    return qs, infos, docs, Corpus(docs)
+
+
+def cmd_retrieval(args: argparse.Namespace) -> None:
+    qs, infos, docs, corpus = _corpus(args)
     infos_in = [i for i in infos if i.doc_name in set(docs)]
     resolver = DocResolver(infos_in)
     plain = DocResolver(infos_in, nicknames={})
@@ -72,12 +76,53 @@ def cmd_retrieval(args: argparse.Namespace) -> None:
         )
 
 
+def cmd_run(args: argparse.Namespace) -> None:
+    from ..retrievers import Retrievers
+    from ..settings import build_runtime
+    from .answers import CONFIGS, Context, run_questions, stratified_subset
+
+    qs, infos, docs, corpus = _corpus(args)
+    resolver = DocResolver([i for i in infos if i.doc_name in set(docs)])
+    rt = build_runtime()
+    print(f"answering with {rt.answer_models}; judging with {rt.judge_models}")
+    ctx = Context(rt.answer, rt.judge, corpus, resolver, Retrievers(corpus, resolver, rt.embedder))
+    subset = qs if args.subset == 0 else stratified_subset(qs, args.subset)
+    for cid in args.config:
+        n, finished = run_questions(ctx, CONFIGS[cid], subset, args.setting)
+        print(f"{cid}: {n} new, {'finished' if finished else 'stopped early'}")
+        if not finished:
+            break
+
+
+def cmd_report(args: argparse.Namespace) -> None:
+    from .answers import stratified_subset
+    from .report import comparisons, load_rows, table
+
+    only = None
+    if args.subset:
+        only = {q.id for q in stratified_subset(load_questions(), args.subset)}
+    rows, by_key = load_rows(only_ids=only)
+    print(table(rows))
+    for setting in sorted({r.setting for r in rows}):
+        print(f"\n{setting} setting, each step against the one before:")
+        print(comparisons(by_key, setting, ["C0", "C1", "C2", "C3", "C4", "C5"]))
+
+
 def main() -> None:
     p = argparse.ArgumentParser(prog="footnote.evals")
     sub = p.add_subparsers(dest="cmd", required=True)
-    r = sub.add_parser("retrieval", help="retrieval scores against gold evidence pages")
+    r = sub.add_parser("retrieval", help="retrieval scores against gold evidence pages (no model)")
     r.add_argument("--docs", choices=["needed", "all"], default="needed")
     r.set_defaults(fn=cmd_retrieval)
+    u = sub.add_parser("run", help="answer and grade questions with a configuration (needs a key)")
+    u.add_argument("--config", nargs="+", required=True, choices=[f"C{i}" for i in range(6)])
+    u.add_argument("--setting", choices=["oracle", "full"], default="full")
+    u.add_argument("--subset", type=int, default=50, help="stratified subset size; 0 means all 150")
+    u.add_argument("--docs", choices=["needed", "all"], default="all")
+    u.set_defaults(fn=cmd_run)
+    t = sub.add_parser("report", help="the results table from the run files")
+    t.add_argument("--subset", type=int, default=0)
+    t.set_defaults(fn=cmd_report)
     args = p.parse_args()
     args.fn(args)
 

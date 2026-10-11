@@ -45,6 +45,13 @@ next step, and do not repeat a call you already made.
 {RULES}"""
 
 
+CLOSED_SYSTEM = """You answer questions about public companies from your own knowledge, with no \
+documents. Give your best answer with figures, units and the period. If you do not know, say so \
+plainly and do not invent figures.
+
+Reply with one JSON object and nothing else: {"answer": "<your answer>"}"""
+
+
 def rag_user(question: str, pages: list[tuple[str, int, str]]) -> str:
     body = "\n\n".join(f"[{doc} | page {page}]\n{text}" for doc, page, text in pages)
     return f"Question: {question}\n\nPages:\n\n{body}"

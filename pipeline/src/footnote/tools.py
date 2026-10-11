@@ -40,6 +40,7 @@ class FilingTools:
     ):
         self.corpus, self.resolver = corpus, resolver
         self.page_chars, self.use_filter = page_chars, use_filter
+        self.restrict: list[str] | None = None  # the oracle setting pins searches to one filing
         self.infos = {i.doc_name: i for i in resolver.infos}
 
     def list_filings(self, company: str | None = None) -> dict[str, Any]:
@@ -56,6 +57,8 @@ class FilingTools:
             return {"error": f"unknown filing {doc!r}; use list_filings"}
         if doc is not None:
             docs: list[str] | None = [doc]
+        elif self.restrict is not None:
+            docs = self.restrict
         elif self.use_filter:
             res = self.resolver.resolve(query)
             docs = res.docs if res.narrowed else None
