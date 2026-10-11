@@ -26,6 +26,9 @@ class Completion:
     completion_tokens: int
     model: str
     cached: bool = False
+    latency_ms: int = (
+        0  # how long the provider took, kept with the answer so a replay can report it
+    )
 
 
 def cache_key(provider: str, model: str, payload: dict) -> str:
@@ -43,7 +46,7 @@ class Store:
             CREATE TABLE IF NOT EXISTS calls (
               key TEXT PRIMARY KEY, model TEXT NOT NULL, text TEXT NOT NULL,
               prompt_tokens INTEGER NOT NULL, completion_tokens INTEGER NOT NULL,
-              created REAL NOT NULL
+              created REAL NOT NULL, latency_ms INTEGER NOT NULL DEFAULT 0
             );
             CREATE TABLE IF NOT EXISTS embeddings (
               key TEXT PRIMARY KEY, vector BLOB NOT NULL
@@ -58,18 +61,25 @@ class Store:
 
     def get(self, key: str) -> Completion | None:
         row = self.db.execute(
-            "SELECT model, text, prompt_tokens, completion_tokens FROM calls WHERE key = ?", (key,)
+            "SELECT model, text, prompt_tokens, completion_tokens, latency_ms FROM calls "
+            "WHERE key = ?",
+            (key,),
         ).fetchone()
         if row is None:
             return None
         return Completion(
-            text=row[1], prompt_tokens=row[2], completion_tokens=row[3], model=row[0], cached=True
+            text=row[1],
+            prompt_tokens=row[2],
+            completion_tokens=row[3],
+            model=row[0],
+            cached=True,
+            latency_ms=row[4],
         )
 
     def put(self, key: str, c: Completion) -> None:
         self.db.execute(
-            "INSERT OR REPLACE INTO calls VALUES (?, ?, ?, ?, ?, ?)",
-            (key, c.model, c.text, c.prompt_tokens, c.completion_tokens, time.time()),
+            "INSERT OR REPLACE INTO calls VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (key, c.model, c.text, c.prompt_tokens, c.completion_tokens, time.time(), c.latency_ms),
         )
         self.db.commit()
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from typing import Any
 
 from .answer import AnswerError, parse_answer
@@ -106,12 +107,15 @@ def run_agent(
             return run
 
         args = act.get("args") if isinstance(act.get("args"), dict) else {}
+        tool_ms = 0
         if act["action"] not in TOOL_DOCS:
             result: dict = {
                 "error": f"unknown tool {act['action']!r}; tools are {', '.join(TOOL_DOCS)}"
             }
         else:
+            t0 = time.perf_counter()
             result = tools.call(act["action"], args)
+            tool_ms = round((time.perf_counter() - t0) * 1000)
         tool_calls += 1
         text = json.dumps(result, ensure_ascii=False)
         run.steps.append(
@@ -120,6 +124,7 @@ def run_agent(
                 kind="tool",
                 name=act["action"],
                 detail={"args": args, "ok": "error" not in result, "result_chars": len(text)},
+                duration_ms=tool_ms,
             )
         )
         if act["action"] in ("get_page", "search_filings"):

@@ -5,6 +5,7 @@ Keys are read from the environment by the caller and passed in; nothing here log
 
 from __future__ import annotations
 
+import time
 from typing import Protocol
 
 import httpx
@@ -69,9 +70,11 @@ class Groq:
         }
         if json_mode:
             body["response_format"] = {"type": "json_object"}
+        t0 = time.perf_counter()
         resp = self.client.post(
             self.url, json=body, headers={"Authorization": f"Bearer {self._key}"}
         )
+        ms = round((time.perf_counter() - t0) * 1000)
         _raise_for(resp)
         data = resp.json()
         usage = data.get("usage") or {}
@@ -80,6 +83,7 @@ class Groq:
             prompt_tokens=int(usage.get("prompt_tokens", 0)),
             completion_tokens=int(usage.get("completion_tokens", 0)),
             model=model,
+            latency_ms=ms,
         )
 
 
@@ -110,9 +114,11 @@ class Gemini:
         body: dict = {"contents": contents, "generationConfig": gen}
         if system:
             body["systemInstruction"] = {"parts": [{"text": system}]}
+        t0 = time.perf_counter()
         resp = self.client.post(
             f"{self.base}/models/{model}:generateContent", json=body, headers=self._headers()
         )
+        ms = round((time.perf_counter() - t0) * 1000)
         _raise_for(resp)
         data = resp.json()
         parts = ((data.get("candidates") or [{}])[0].get("content") or {}).get("parts") or []
@@ -122,6 +128,7 @@ class Gemini:
             prompt_tokens=int(usage.get("promptTokenCount", 0)),
             completion_tokens=int(usage.get("candidatesTokenCount", 0)),
             model=model,
+            latency_ms=ms,
         )
 
     def embed(self, model: str, texts: list[str], *, task: str) -> list[list[float]]:
