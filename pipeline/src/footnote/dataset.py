@@ -43,6 +43,7 @@ class DocInfo(BaseModel):
     sector: str
     doc_type: str
     period: int | str
+    link: str = ""  # where the company published the filing
 
 
 def _lines(path: Path) -> list[dict]:
@@ -85,6 +86,7 @@ def load_docs(root: Path = FINANCEBENCH) -> list[DocInfo]:
             sector=r.get("gics_sector") or "",
             doc_type=r["doc_type"],
             period=r["doc_period"],
+            link=r.get("doc_link") or "",
         )
         for r in _lines(root / "data" / "financebench_document_information.jsonl")
     ]
