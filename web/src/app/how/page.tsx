@@ -82,6 +82,38 @@ export default function How() {
         </p>
       </section>
 
+      <section aria-labelledby="short-heading" className="panel space-y-3 p-4 sm:p-5">
+        <h2 id="short-heading" className="text-lg font-semibold tracking-tight">
+          In short
+        </h2>
+        <ul className="max-w-[72ch] space-y-2 text-[14.5px] leading-relaxed">
+          <li>
+            <strong className="font-semibold">What it is:</strong> a tool for checking a number in a company&rsquo;s filing. You ask a question; it shows the
+            pages most likely to hold the answer, so you can read the figure at its source.
+          </li>
+          <li>
+            <strong className="font-semibold">What works today:</strong> finding pages, in your browser, for 7 filings. It has been scored on all 150
+            FinanceBench questions (see{" "}
+            <Link href="/results" className="font-medium text-accent underline underline-offset-2">
+              Results
+            </Link>
+            ).
+          </li>
+          <li>
+            <strong className="font-semibold">What does not work yet:</strong> writing the answer itself. That needs a language model, and the code for it
+            has only been tested against stand-ins. The table below says, part by part, how far each has been checked.
+          </li>
+        </ul>
+        <p>
+          <Link
+            href="/"
+            className="inline-flex h-10 items-center rounded-xl bg-accent px-5 text-[14px] font-medium text-accent-fg transition-opacity hover:opacity-90"
+          >
+            Try the search
+          </Link>
+        </p>
+      </section>
+
       <section aria-labelledby="flow-heading" className="space-y-3">
         <h2 id="flow-heading" className="text-lg font-semibold tracking-tight">
           The path of a question
@@ -106,7 +138,8 @@ export default function How() {
         <h2 id="parts-heading" className="text-lg font-semibold tracking-tight">
           Each part, and how far it has been checked
         </h2>
-        <div className="panel overflow-x-auto">
+        <p className="text-[12.5px] text-faint sm:hidden">The table is wider than the screen: swipe it sideways to read every column.</p>
+        <div className="panel overflow-x-auto" tabIndex={0} role="region" aria-label="Parts of Footnote and their state; scrolls sideways">
           <table className="w-full min-w-[560px] border-collapse text-left text-[13.5px]">
             <caption className="sr-only">The parts of Footnote, what each does, and its state.</caption>
             <thead>

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { ThemeProvider } from "@/components/theme";
 import { THEME_SCRIPT } from "@/components/themeScript";
@@ -39,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
-      <body className="min-h-full">
+      <body className="flex min-h-full flex-col">
         <ThemeProvider>
           <a
             href="#main"
@@ -48,9 +49,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             Skip to the content
           </a>
           <Header />
-          <main id="main" className="mx-auto w-full max-w-[1100px] px-4 pb-20 pt-8 sm:px-6">
+          <main id="main" className="mx-auto w-full max-w-[1100px] flex-1 px-4 pb-16 pt-8 sm:px-6">
             {children}
           </main>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>

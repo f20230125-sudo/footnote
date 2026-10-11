@@ -12,9 +12,28 @@ const PLAIN = new Set(
 
 const WORD = /[a-z0-9]+(?:[.,][0-9]+)*/gi;
 
-/** The words of a question worth marking: its tokens, minus the plain ones. */
+/** The words of a question worth marking: its tokens, minus the plain ones and stray letters (the "s" of "Buy's"). */
 export function markTerms(query: string): Set<string> {
-  return new Set(tokenize(query).filter((t) => !PLAIN.has(t)));
+  return new Set(tokenize(query).filter((t) => !PLAIN.has(t) && (t.length > 1 || /\d/.test(t))));
+}
+
+/**
+ * Which of the question's words are worth marking on THESE pages. A word found on
+ * most of the searched pages (the company's name once the search is narrowed to
+ * its filing, "fiscal", the year) says nothing about which page is the right one,
+ * and marking it buries the words that do. Too few pages to judge, or nothing
+ * left after dropping: keep every word. Display only; the ranking is untouched.
+ */
+export function distinctTerms(
+  terms: Set<string>,
+  seen: { pages: number; share: Map<string, number> },
+  most = 0.4,
+  minPages = 20,
+): { marked: Set<string>; left: string[] } {
+  if (seen.pages < minPages) return { marked: terms, left: [] };
+  const left = [...terms].filter((t) => (seen.share.get(t) ?? 0) > most);
+  if (left.length === 0 || left.length === terms.size) return { marked: terms, left: [] };
+  return { marked: new Set([...terms].filter((t) => !left.includes(t))), left };
 }
 
 function normal(word: string): string {

@@ -12,11 +12,11 @@ The point of the project is the measurement, not the demo: every part (retrieval
 
 `web/` is a small Next.js site with three pages, and it needs no server beyond static files:
 
-- **Search**: type a question, or pick one of 31 FinanceBench questions about 7 filings (670 pages, published by the companies themselves). The browser ranks the pages and marks the question's words in them. For a benchmark question it also shows which page FinanceBench points to and where this search ranks it. A TypeScript port of the search runs in the browser, and a test holds it to the Python ranking, page for page, scores to five decimals.
-- **Results**: the measurements below as a chart you can switch between the top 1, 3, 5 and 10 results, with every number in a table.
-- **How it works**: each part of the system and how far it has been checked (measured, unit-tested, tested only against a stand-in model, or not run).
+- **Search**: type a question, click one of five examples, or pick one of 31 FinanceBench questions about 7 filings (670 pages, published by the companies themselves). The browser ranks the pages and marks the question's words in them, leaving plain the words found on most of the searched pages (the company's name once the search is narrowed, "fiscal", the year) so the useful words stand out. For a benchmark question it also shows which page FinanceBench points to and where this search ranks it. Results scroll into view (on a phone they would otherwise be off screen), each card has a "Copy citation" button and a link to the filing, and the whole search lives in the address (`?q=...`), so a link reproduces it. A TypeScript port of the search runs in the browser, and a test holds it to the Python ranking, page for page, scores to five decimals; the highlighting is display only and does not touch the ranking.
+- **Results**: the measurements below as three headline numbers and bars by question type, switchable between the top 1, 3, 5 and 10 results, a plain-words reading, a glossary (BM25, MRR, "ceiling"...), and every number in a table.
+- **How it works**: a short summary, then each part of the system and how far it has been checked (measured, unit-tested, tested only against a stand-in model, or not run).
 
-The site finds pages; it does not write answers, because no language model has been run yet. It ships the text of the 7 filings and the 31 questions, but not FinanceBench's reference answers or evidence text. Its data files are written by `python -m footnote.site_export`, so the page cannot drift from the evaluation. 24 end-to-end tests drive it in a real browser (searching, the chart, accessibility scans in both themes, the security headers, a phone-sized screen).
+The site finds pages; it does not write answers, because no language model has been run yet. It ships the text of the 7 filings and the 31 questions, but not FinanceBench's reference answers or evidence text. Its data files are written by `python -m footnote.site_export`, so the page cannot drift from the evaluation. 38 end-to-end tests drive it in a real browser (searching, copying, reloading from a link, the results bars, accessibility scans in both themes, the security headers, a phone-sized screen), plus 30 unit tests.
 
 ## What is measured so far (no model, all 150 questions)
 
@@ -75,7 +75,7 @@ cd pipeline && ../.venv/Scripts/python -m pytest -q          # 128 tests, no dat
 ../.venv/Scripts/python -m footnote.evals retrieval --docs all   # no key; reads all the PDFs the first time, which takes a while
 ```
 
-The site: `cd web && npm install && npm run dev` (port 3050); `npm test` includes the parity test, `npm run e2e` the browser tests. The same browser tests run against the live site with `BASE_URL=https://footnote-ten.vercel.app npm run e2e` (24 passed on 11 Oct 2026).
+The site: `cd web && npm install && npm run dev` (port 3050); `npm test` includes the parity test, `npm run e2e` the browser tests. The same browser tests run against the live site with `BASE_URL=https://footnote-ten.vercel.app npm run e2e`.
 
 Model runs need `GROQ_API_KEY` and/or `GEMINI_API_KEY` in a git-ignored `.env` (see `.env.example`); neither free tier asks for a card, and nothing in this project can bill anyone.
 
