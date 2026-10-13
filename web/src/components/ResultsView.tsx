@@ -6,12 +6,13 @@ import type { Results, Table } from "@/lib/data";
 
 type Setting = "full" | "filtered" | "oracle";
 
-// Fixed order, and each keeps its colour whatever else is shown: the colour
-// follows the way of searching, never its rank. The words always say it too.
-const SERIES: Array<{ key: Setting; label: string; short: string; note: string; color: string }> = [
-  { key: "full", label: "Search all 360 filings", short: "All filings", note: "Keywords only, no help.", color: "var(--series-1)" },
-  { key: "filtered", label: "+ company and year filter", short: "With filter", note: "First pick the filings that fit the company and year in the question.", color: "var(--series-2)" },
-  { key: "oracle", label: "Right filing given (a ceiling)", short: "Right filing", note: "Told which filing to look in: the best this search can do.", color: "var(--series-3)" },
+// Fixed order. The three ways of searching are three steps of one thing (how
+// much help the search gets), so they are drawn as three steps of one ink:
+// solid ink, mid ink, and an outline for the ceiling. The words always say it too.
+const SERIES: Array<{ key: Setting; label: (filings: number) => string; short: string; note: string }> = [
+  { key: "full", label: (n) => `Search all ${n} filings`, short: "All filings", note: "Keywords only, no help." },
+  { key: "filtered", label: () => "+ company and year filter", short: "With filter", note: "First pick the filings that fit the company and year in the question." },
+  { key: "oracle", label: () => "Right filing given (a ceiling)", short: "Right filing", note: "Told which filing to look in: the best this search can do." },
 ];
 
 const KS = ["1", "3", "5", "10"] as const;
@@ -69,215 +70,224 @@ export function ResultsView({ results }: { results: Results }) {
   const filtered = all.filtered.hit[k];
   const closed = ceiling > full ? Math.round(((filtered - full) / (ceiling - full)) * 100) : 0;
   const f = results.filter;
+  // The tallest column at any depth, so the plot is only as tall as it ever needs to be and does not jump when the depth changes.
+  const tallest = Math.max(...KS.flatMap((depth) => SERIES.map((s) => all[s.key].hit[depth])));
 
   return (
-    <div className="space-y-10">
-      <section className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">What has been measured</h1>
-        <p className="max-w-[70ch] text-[15px] leading-relaxed text-muted">
+    <div className="notes-layout">
+      <div className="nl-intro">
+        <h1 className="h1">What has been measured</h1>
+        <p className="dek mt-4 max-w-[72ch]">
           FinanceBench has {results.questions} questions about real filings, and for each it marks the page that holds the evidence. Here, a plain keyword
           search (BM25) reads the question and ranks the pages of {results.corpus.filings} filings ({results.corpus.pages.toLocaleString("en-US")} pages). The
-          score is how often a marked page is among the first few results. No language model is involved.{" "}
-          <a href="#words" className="font-medium text-accent underline underline-offset-2">
+          score is how often a marked page is among the first few results. No language model is involved.
+        </p>
+      </div>
+      <div className="nl-limits note">
+        <p>
+          <strong>Limits.</strong> Only retrieval has been measured: nothing on this page involves a language model, and there is no accuracy figure for answers yet.{" "}
+          <a href="#words" className="tlink font-semibold text-ink">
             New to these terms? See what they mean.
           </a>
         </p>
-      </section>
+      </div>
 
-      <section aria-labelledby="chart-heading" className="panel space-y-5 p-4 sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 id="chart-heading" className="text-lg font-semibold tracking-tight">
-              Is the evidence page in the top {k} results?
-            </h2>
-            <p className="mt-1 text-[13px] text-muted">Share of questions where it is. Choose how many results count:</p>
+      <div className="nl-body space-y-12">
+        <section aria-labelledby="chart-heading" className="space-y-8">
+          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+            <div className="min-w-0">
+              <h2 id="chart-heading" className="h2">
+                Is the evidence page in the top {k} results?
+              </h2>
+              <p className="mt-2 text-[14px] text-ink-2">Share of questions where it is. Choose how many results count:</p>
+            </div>
+            <fieldset className="flex items-center gap-3 sm:gap-5">
+              <legend className="sr-only">How many results count</legend>
+              {KS.map((value) => (
+                <label key={value} className="cursor-pointer">
+                  <input type="radio" name={kId} value={value} checked={k === value} onChange={() => setK(value)} className="peer sr-only" />
+                  <span className="inline-flex min-h-11 min-w-14 items-center justify-center border-b-[3px] border-transparent px-1 text-[15px] font-medium text-ink-2 transition-colors duration-150 ease-out hover:text-ink peer-checked:border-ink peer-checked:font-bold peer-checked:text-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink">
+                    top {value}
+                  </span>
+                </label>
+              ))}
+            </fieldset>
           </div>
-          <fieldset className="flex items-center gap-1 rounded-xl border border-line bg-bg p-1">
-            <legend className="sr-only">How many results count</legend>
-            {KS.map((value) => (
-              <label key={value} className="cursor-pointer">
-                <input type="radio" name={kId} value={value} checked={k === value} onChange={() => setK(value)} className="peer sr-only" />
-                <span className="inline-flex h-8 min-w-12 items-center justify-center rounded-lg px-3 text-[13px] font-medium text-muted transition-colors peer-checked:bg-surface peer-checked:text-fg peer-checked:shadow-sm peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-accent">
-                  top {value}
-                </span>
-              </label>
+
+          {/* The headline: three columns of true height on one rule, 0 to 100%. */}
+          <ul aria-label={`All ${results.questions} questions`} className="res-cols" style={{ "--res-max": tallest } as React.CSSProperties}>
+            {SERIES.map((s) => (
+              <li key={s.key} className="res-col min-w-0">
+                <div className="res-plot">
+                  <p className="res-fig">{pct(all[s.key].hit[k])}</p>
+                  <span aria-hidden="true" className="res-bar" data-k={s.key} style={{ "--v": all[s.key].hit[k] } as React.CSSProperties} />
+                </div>
+                <p className="text-[14px] font-semibold leading-snug">{s.label(results.corpus.filings)}</p>
+                <p className="mt-1 text-[13.5px] leading-snug text-ink-2">{s.note}</p>
+              </li>
             ))}
-          </fieldset>
-        </div>
+          </ul>
 
-        {/* The headline, in three numbers; they double as the key to the colours below. */}
-        <ul aria-label={`All ${results.questions} questions`} className="grid gap-3 sm:grid-cols-3">
-          {SERIES.map((s) => (
-            <li key={s.key} className="rounded-xl border border-line bg-bg p-3.5">
-              <p className="flex items-center gap-2 text-[12.5px] font-medium">
-                <span aria-hidden="true" className="h-3 w-3 shrink-0 rounded-[3px]" style={{ background: s.color }} />
-                {s.label}
-              </p>
-              <p className="tabular mt-1 text-3xl font-semibold tracking-tight">{pct(all[s.key].hit[k])}</p>
-              <p className="mt-0.5 text-[12.5px] leading-snug text-muted">{s.note}</p>
-            </li>
-          ))}
-        </ul>
+          <p className="max-w-[72ch] text-[17px] leading-[1.5]">
+            <strong className="run-in">In plain words.</strong> Given only the question, keyword search puts a page FinanceBench marks into the top {k} for{" "}
+            {pct(full)} of questions. Picking the right company and year first lifts that to {pct(filtered)}. Even told the exact filing, it reaches only{" "}
+            {pct(ceiling)}, so a large part of the weakness is vocabulary: questions and filings use different words (more below).
+          </p>
 
-        <p className="max-w-[72ch] text-[14px] leading-relaxed">
-          <strong className="font-semibold">In plain words:</strong> given only the question, keyword search puts a page FinanceBench marks into the top {k} for{" "}
-          {pct(full)} of questions. Picking the right company and year first lifts that to {pct(filtered)}. Even told the exact filing, it reaches only{" "}
-          {pct(ceiling)}, so a large part of the weakness is vocabulary: questions and filings use different words (more below).
-        </p>
-
-        <div>
-          <h3 className="mb-3 text-[13.5px] font-semibold">By type of question</h3>
-          <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
-            {groups.map((g) => (
-              <div key={g.key} role="group" aria-labelledby={`${kId}-${g.key}`}>
-                <h4 id={`${kId}-${g.key}`} className="text-[13px] font-semibold">
-                  {groupName(g.key)} <span className="font-normal text-faint">· {g.n} questions</span>
-                </h4>
-                <ul className="mt-2 space-y-1.5">
-                  {SERIES.map((s) => {
-                    const v = g.tables[s.key].hit[k];
-                    return (
-                      <li key={s.key} className="grid grid-cols-[6.25rem_1fr_2.75rem] items-center gap-2 text-[12.5px] sm:grid-cols-[6.75rem_1fr_2.75rem]">
-                        <span className="text-muted">{s.short}</span>
-                        <span aria-hidden="true" className="h-3.5 overflow-hidden rounded-full bg-surface-2">
-                          <span
-                            className="block h-full rounded-full motion-safe:transition-[width] motion-safe:duration-300"
-                            style={{ width: `${Math.max(v * 100, v > 0 ? 1.5 : 0)}%`, background: s.color }}
-                          />
-                        </span>
-                        <span className="tabular text-right font-semibold">{pct(v)}</span>
+          <div>
+            <h3 className="h3 mb-4">By type of question</h3>
+            <div className="grid gap-x-12 gap-y-8 sm:grid-cols-2">
+              {groups.map((g) => (
+                <div key={g.key} role="group" aria-labelledby={`${kId}-${g.key}`} className="min-w-0">
+                  <h4 id={`${kId}-${g.key}`} className="text-[14px] font-bold">
+                    {groupName(g.key)} <span className="font-normal text-ink-3">{g.n} questions</span>
+                  </h4>
+                  <div className="mini-row mt-2" aria-hidden="true">
+                    {SERIES.map((s) => (
+                      <div key={s.key} className="mini-cell">
+                        <span className="tabular mb-1 text-[16px] font-bold leading-none">{pct(g.tables[s.key].hit[k])}</span>
+                        <span className="mini-bar res-bar" data-k={s.key} style={{ "--v": g.tables[s.key].hit[k] } as React.CSSProperties} />
+                      </div>
+                    ))}
+                  </div>
+                  <ul className="mt-2 grid grid-cols-3 gap-x-4 text-[13px] leading-snug text-ink-2">
+                    {SERIES.map((s) => (
+                      <li key={s.key} className="min-w-0">
+                        <span className="sr-only">{pct(g.tables[s.key].hit[k])}, </span>
+                        {s.short}
                       </li>
-                    );
-                  })}
-                </ul>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="reading-heading" className="space-y-4">
+          <h2 id="reading-heading" className="h2">
+            What to take from it
+          </h2>
+          <div className="prose-text space-y-4 text-ink-2">
+            <p>
+              <strong className="run-in">Plain search is weak.</strong> Over all filings it puts a marked page in the top {k} for {pct(full)} of questions. Even
+              told the right filing, it manages {pct(ceiling)}. Questions and filings use different words (a question says &ldquo;capital expenditure&rdquo;, the
+              filing says &ldquo;Purchases of property, plant and equipment&rdquo;), which is what embeddings and a query-rewriting agent are for. They are built
+              but not yet run.
+            </p>
+            <p>
+              <strong className="run-in">The company and year filter helps a lot:</strong> {pct(filtered)}, which closes {closed}% of the gap to the ceiling. It
+              keeps the right filing for {f.keptRightFiling} of {results.questions} questions and narrows to about {f.candidatesWhenRecognised.toFixed(0)} filings
+              of {results.corpus.filings}.
+            </p>
+            <p>
+              <strong className="run-in">It stops short of the ceiling, and not for lack of a year.</strong> {f.namingAYear} of the {results.questions} questions
+              name a year. A year does not pin down one filing: a company has a 10-K, 10-Qs, 8-Ks and earnings releases for the same year, so{" "}
+              {f.moreThanOneCandidate} of the {f.recognised} recognised questions still have more than one candidate. Of the {f.rightFilingAloneWins} questions
+              that the right filing alone gets right and the filter does not, {f.ofThoseCrowdedOut} were crowded out by another filing of the same company.
+            </p>
+            <p>
+              <strong className="run-in">The filter&rsquo;s recognition is partly tuned on this benchmark.</strong> By company name alone it recognises{" "}
+              {f.recognisedWithoutNicknames} of {results.questions} questions. I then added five nicknames (
+              {Object.values(f.nicknames).flat().join(", ").toUpperCase()}) after seeing which questions it missed, which brings it to {f.recognised}. The honest
+              figure for questions it has not seen is the first.
+            </p>
+            <p>
+              <strong className="run-in">The page numbers are checked.</strong> Searching with the evidence text itself finds its own page at rank 1 for 97% of
+              questions, so the low numbers above are not an indexing mistake. FinanceBench counts pages from 0, which the evaluation measured instead of
+              assuming.
+            </p>
+          </div>
+        </section>
+
+        <section id="words" aria-labelledby="words-heading" className="scroll-mt-20 space-y-4">
+          <h2 id="words-heading" className="h2">
+            What the words mean
+          </h2>
+          <dl className="max-w-[78ch] text-[15px] leading-relaxed">
+            {TERMS.map((t) => (
+              <div key={t.term} className="grid gap-x-6 border-t border-rule py-3 sm:grid-cols-[11rem_1fr]">
+                <dt className="font-bold">{t.term}</dt>
+                <dd className="text-ink-2">{t.means}</dd>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
+          </dl>
+          <p className="text-[14px] text-ink-2">
+            More on how each part works, and which parts have not been run, is on{" "}
+            <Link href="/how" className="tlink inline-block py-1 font-semibold text-ink">
+              How it works
+            </Link>
+            .
+          </p>
+        </section>
 
-      <section aria-labelledby="reading-heading" className="space-y-3">
-        <h2 id="reading-heading" className="text-lg font-semibold tracking-tight">
-          What to take from it
-        </h2>
-        <ul className="max-w-[72ch] list-disc space-y-2 pl-5 text-[14.5px] leading-relaxed text-muted marker:text-faint">
-          <li>
-            <strong className="font-semibold text-fg">Plain search is weak.</strong> Over all filings it puts a marked page in the top {k} for {pct(full)} of
-            questions. Even told the right filing, it manages {pct(ceiling)}. Questions and filings use different words (a question says &ldquo;capital
-            expenditure&rdquo;, the filing says &ldquo;Purchases of property, plant and equipment&rdquo;), which is what embeddings and a query-rewriting
-            agent are for. They are built but not yet run.
-          </li>
-          <li>
-            <strong className="font-semibold text-fg">The company and year filter helps a lot:</strong> {pct(filtered)}, which closes {closed}% of the gap to
-            the ceiling. It keeps the right filing for {f.keptRightFiling} of {results.questions} questions and narrows to about{" "}
-            {f.candidatesWhenRecognised.toFixed(0)} filings of {results.corpus.filings}.
-          </li>
-          <li>
-            <strong className="font-semibold text-fg">It stops short of the ceiling, and not for lack of a year.</strong> {f.namingAYear} of the{" "}
-            {results.questions} questions name a year. A year does not pin down one filing: a company has a 10-K, 10-Qs, 8-Ks and earnings releases for the same
-            year, so {f.moreThanOneCandidate} of the {f.recognised} recognised questions still have more than one candidate. Of the {f.rightFilingAloneWins}{" "}
-            questions that the right filing alone gets right and the filter does not, {f.ofThoseCrowdedOut} were crowded out by another filing of the same
-            company.
-          </li>
-          <li>
-            <strong className="font-semibold text-fg">The filter&rsquo;s recognition is partly tuned on this benchmark.</strong> By company name alone it
-            recognises {f.recognisedWithoutNicknames} of {results.questions} questions. I then added five nicknames ({Object.values(f.nicknames).flat().join(", ").toUpperCase()})
-            after seeing which questions it missed, which brings it to {f.recognised}. The honest figure for questions it has not seen is the first.
-          </li>
-          <li>
-            <strong className="font-semibold text-fg">The page numbers are checked.</strong> Searching with the evidence text itself finds its own page at rank
-            1 for 97% of questions, so the low numbers above are not an indexing mistake. FinanceBench counts pages from 0, which the evaluation measured
-            instead of assuming.
-          </li>
-        </ul>
-      </section>
-
-      <section id="words" aria-labelledby="words-heading" className="scroll-mt-20 space-y-3">
-        <h2 id="words-heading" className="text-lg font-semibold tracking-tight">
-          What the words mean
-        </h2>
-        <dl className="grid max-w-[78ch] gap-x-6 gap-y-3 text-[14px] leading-relaxed sm:grid-cols-[11rem_1fr]">
-          {TERMS.map((t) => (
-            <div key={t.term} className="contents">
-              <dt className="font-semibold">{t.term}</dt>
-              <dd className="mb-2 text-muted sm:mb-0">{t.means}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="text-[13px] text-muted">
-          More on how each part works, and which parts have not been run, is on{" "}
-          <Link href="/how" className="font-medium text-accent underline underline-offset-2">
-            How it works
-          </Link>
-          .
-        </p>
-      </section>
-
-      <section aria-labelledby="table-heading" className="space-y-3">
-        <h2 id="table-heading" className="text-lg font-semibold tracking-tight">
-          Every number
-        </h2>
-        <p className="text-[12.5px] text-faint sm:hidden">The table is wider than the screen: swipe it sideways to see every column.</p>
-        <div className="panel overflow-x-auto" tabIndex={0} role="region" aria-label="Table of every number; scrolls sideways">
-          <table className="tabular w-full min-w-[640px] border-collapse text-left text-[13px]">
-            <caption className="sr-only">Share of questions whose evidence page is among the top results, and mean reciprocal rank, by question group and way of searching.</caption>
-            <thead>
-              <tr className="border-b border-line text-[12px] text-faint">
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Questions
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Search
-                </th>
-                {KS.map((value) => (
-                  <th key={value} scope="col" className="px-3 py-3 text-right font-medium">
-                    top {value}
+        <section aria-labelledby="table-heading" className="space-y-3">
+          <h2 id="table-heading" className="h2">
+            Every number
+          </h2>
+          <p className="text-[13px] text-ink-3 sm:hidden">The table is wider than the screen: swipe it sideways to see every column.</p>
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Table of every number; scrolls sideways">
+            <table className="tabular w-full min-w-[640px] border-collapse text-left text-[14px]">
+              <caption className="sr-only">Share of questions whose evidence page is among the top results, and mean reciprocal rank, by question group and way of searching.</caption>
+              <thead>
+                <tr className="border-b-2 border-ink text-[13px]">
+                  <th scope="col" className="py-3 pr-4 font-bold">
+                    Questions
                   </th>
-                ))}
-                <th scope="col" className="px-3 py-3 text-right font-medium">
-                  <abbr title="Mean reciprocal rank: the average of 1 divided by the rank of the first marked page">MRR</abbr>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {groups.flatMap((g) =>
-                SERIES.map((s, si) => (
-                  <tr key={`${g.key}-${s.key}`} className={`border-b border-line last:border-0 ${si === 0 ? "border-t-2 border-t-line-strong" : ""}`}>
-                    {si === 0 ? (
-                      <th scope="rowgroup" rowSpan={SERIES.length} className="px-4 py-2 align-top font-semibold">
-                        {groupName(g.key)}
-                        <span className="block text-[11.5px] font-normal text-faint">{g.n} questions</span>
-                      </th>
-                    ) : null}
-                    <td className="px-4 py-2">
-                      <span aria-hidden="true" className="mr-2 inline-block h-2.5 w-2.5 rounded-[2px]" style={{ background: s.color }} />
-                      {s.short}
-                    </td>
-                    {KS.map((value) => (
-                      <td key={value} className={`px-3 py-2 text-right ${value === k ? "font-semibold" : ""}`}>
-                        {pct(g.tables[s.key].hit[value])}
+                  <th scope="col" className="py-3 pr-4 font-bold">
+                    Search
+                  </th>
+                  {KS.map((value) => (
+                    <th key={value} scope="col" className={`px-3 py-3 text-right ${value === k ? "font-extrabold" : "font-bold"}`}>
+                      top {value}
+                    </th>
+                  ))}
+                  <th scope="col" className="py-3 pl-3 text-right font-bold">
+                    <abbr title="Mean reciprocal rank: the average of 1 divided by the rank of the first marked page">MRR</abbr>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {groups.flatMap((g) =>
+                  SERIES.map((s, si) => (
+                    <tr key={`${g.key}-${s.key}`} className={`border-b border-rule ${si === 0 ? "border-t border-t-edge" : ""}`}>
+                      {si === 0 ? (
+                        <th scope="rowgroup" rowSpan={SERIES.length} className="py-2 pr-4 align-top font-bold">
+                          {groupName(g.key)}
+                          <span className="block text-[12.5px] font-normal text-ink-3">{g.n} questions</span>
+                        </th>
+                      ) : null}
+                      <td className="py-2 pr-4">
+                        <span aria-hidden="true" className="res-key" data-k={s.key} />
+                        {s.short}
                       </td>
-                    ))}
-                    <td className="px-3 py-2 text-right">{g.tables[s.key].mrr.toFixed(3)}</td>
-                  </tr>
-                )),
-              )}
-            </tbody>
-          </table>
-        </div>
-        <p className="text-[12.5px] text-faint">Question-type names are FinanceBench&rsquo;s own. Full text of the run: results/ in the repository.</p>
-      </section>
+                      {KS.map((value) => (
+                        <td key={value} className={`px-3 py-2 text-right ${value === k ? "font-bold" : ""}`}>
+                          {pct(g.tables[s.key].hit[value])}
+                        </td>
+                      ))}
+                      <td className="py-2 pl-3 text-right">{g.tables[s.key].mrr.toFixed(3)}</td>
+                    </tr>
+                  )),
+                )}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-[13px] text-ink-3">Question-type names are FinanceBench&rsquo;s own. Full text of the run: results/ in the repository.</p>
+        </section>
 
-      <section aria-labelledby="gaps-heading" className="panel space-y-2 border-l-4 border-l-warn p-4 sm:p-5">
-        <h2 id="gaps-heading" className="text-lg font-semibold tracking-tight">
-          Not measured yet
-        </h2>
-        <p className="max-w-[72ch] text-[14px] leading-relaxed text-muted">
-          Nothing on this page involves a language model. The answering, the citation checks, the agent and the judge are written and tested against scripted
-          stand-ins, and have not been run against a real model, so there is no accuracy figure yet: not for the closed-book baseline, not for retrieval-augmented
-          answers, not for the agent. Those will be added here with their sample sizes and intervals, including any that come out badly.
-        </p>
-      </section>
+        <section aria-labelledby="gaps-heading" className="space-y-3">
+          <div className="footnote-rule" />
+          <h2 id="gaps-heading" className="h2">
+            Not measured yet
+          </h2>
+          <p className="prose-text text-ink-2">
+            Nothing on this page involves a language model. The answering, the citation checks, the agent and the judge are written and tested against scripted
+            stand-ins, and have not been run against a real model, so there is no accuracy figure yet: not for the closed-book baseline, not for
+            retrieval-augmented answers, not for the agent. Those will be added here with their sample sizes and intervals, including any that come out badly.
+          </p>
+        </section>
+      </div>
     </div>
   );
 }

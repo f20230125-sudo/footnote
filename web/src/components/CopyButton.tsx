@@ -28,9 +28,9 @@ export function CopyButton({ text, label, className = "" }: { text: string; labe
       <button
         type="button"
         onClick={copy}
-        className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[12px] font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg ${className}`}
+        className={`tlink inline-flex min-h-9 items-center gap-1.5 text-[13px] font-semibold text-ink hover:bg-leaf-2 sm:min-h-8 ${className}`}
       >
-        {phase === "done" ? <Check size={13} aria-hidden="true" className="text-ok" /> : <Copy size={13} aria-hidden="true" />}
+        {phase === "done" ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
         {phase === "done" ? "Copied" : phase === "failed" ? "Could not copy" : label}
       </button>
       <span role="status" className="sr-only">

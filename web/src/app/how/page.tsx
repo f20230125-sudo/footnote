@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import examples from "../../../public/data/examples.json";
+import filings from "../../../public/data/filings.json";
+import results from "../../../public/data/results.json";
 
 export const metadata: Metadata = {
   title: "How it works",
@@ -8,13 +11,13 @@ export const metadata: Metadata = {
 
 type State = "measured" | "checked" | "tested" | "standin" | "notrun";
 
-// The words carry the meaning; the dot is only a marker, so colour alone never says it.
-const STATE: Record<State, { label: string; dot: string }> = {
-  measured: { label: "Measured on all 150 questions", dot: "bg-ok" },
-  checked: { label: "Checked against the real filings", dot: "bg-ok" },
-  tested: { label: "Unit-tested, including refusals", dot: "bg-ok" },
-  standin: { label: "Tested with a stand-in model only", dot: "bg-warn" },
-  notrun: { label: "Built, not run", dot: "bg-warn" },
+// The words carry the meaning; the drawn square is only a marker (filled, half, hollow), so colour never says it.
+const STATE: Record<State, { label: string; square: "full" | "half" | "none" }> = {
+  measured: { label: `Measured on all ${results.questions} questions`, square: "full" },
+  checked: { label: "Checked against the real filings", square: "full" },
+  tested: { label: "Unit-tested, including refusals", square: "full" },
+  standin: { label: "Tested with a stand-in model only", square: "half" },
+  notrun: { label: "Built, not run", square: "none" },
 };
 
 const PARTS: Array<{ name: string; what: string; state: State }> = [
@@ -70,141 +73,157 @@ const PARTS: Array<{ name: string; what: string; state: State }> = [
   },
 ];
 
+const STEPS: Array<{ step: string; run: boolean }> = [
+  { step: "Question", run: true },
+  { step: "Filter by company and year", run: true },
+  { step: "Rank pages", run: true },
+  { step: "Answer with citations", run: false },
+  { step: "Check the citations", run: false },
+];
+
+// What this site ships, counted from the files it ships.
+const SHIPPED_FILINGS = filings.length;
+const SHIPPED_PAGES = filings.reduce((n, f) => n + f.pages, 0);
+const SHIPPED_QUESTIONS = examples.length;
+
 export default function How() {
   return (
-    <div className="space-y-10">
-      <section className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">How it works</h1>
-        <p className="max-w-[70ch] text-[15px] leading-relaxed text-muted">
-          Footnote answers questions about company filings and shows the page behind every figure. The project is a measurement as much as a tool: each
-          part is added one at a time and scored against the same {150} questions from FinanceBench, whose own README reports that GPT-4-Turbo with retrieval
-          answered 81% of them wrongly or refused. Right now only the first three parts have numbers.
+    <div className="notes-layout">
+      <div className="nl-intro">
+        <h1 className="h1">How it works</h1>
+        <p className="dek mt-4 max-w-[72ch]">
+          Footnote answers questions about company filings and shows the page behind every figure. The project is a measurement as much as a tool: each part is
+          added one at a time and scored against the same {results.questions} questions from FinanceBench, whose own README reports that GPT-4-Turbo with
+          retrieval answered 81% of them wrongly or refused. Right now only the first three parts have numbers.
         </p>
-      </section>
-
-      <section aria-labelledby="short-heading" className="panel space-y-3 p-4 sm:p-5">
-        <h2 id="short-heading" className="text-lg font-semibold tracking-tight">
-          In short
-        </h2>
-        <ul className="max-w-[72ch] space-y-2 text-[14.5px] leading-relaxed">
-          <li>
-            <strong className="font-semibold">What it is:</strong> a tool for checking a number in a company&rsquo;s filing. You ask a question; it shows the
-            pages most likely to hold the answer, so you can read the figure at its source.
-          </li>
-          <li>
-            <strong className="font-semibold">What works today:</strong> finding pages, in your browser, for 7 filings. It has been scored on all 150
-            FinanceBench questions (see{" "}
-            <Link href="/results" className="font-medium text-accent underline underline-offset-2">
-              Results
-            </Link>
-            ).
-          </li>
-          <li>
-            <strong className="font-semibold">What does not work yet:</strong> writing the answer itself. That needs a language model, and the code for it
-            has only been tested against stand-ins. The table below says, part by part, how far each has been checked.
-          </li>
-        </ul>
+      </div>
+      <div className="nl-limits note">
         <p>
-          <Link
-            href="/"
-            className="inline-flex h-10 items-center rounded-xl bg-accent px-5 text-[14px] font-medium text-accent-fg transition-opacity hover:opacity-90"
-          >
-            Try the search
-          </Link>
+          <strong>Stand-in.</strong> &ldquo;Stand-in&rdquo; means the code runs end to end in tests against a scripted fake of the model, which proves the plumbing
+          and the rules but not how a real model behaves with these prompts. Nothing has been run against Gemini or Groq yet.
         </p>
-      </section>
+      </div>
 
-      <section aria-labelledby="flow-heading" className="space-y-3">
-        <h2 id="flow-heading" className="text-lg font-semibold tracking-tight">
-          The path of a question
-        </h2>
-        <ol className="grid gap-3 sm:grid-cols-5">
-          {["Question", "Filter by company and year", "Rank pages", "Answer with citations", "Check the citations"].map((step, i) => (
-            <li key={step} className="panel flex items-start gap-2 p-3 text-[13px] font-medium leading-snug">
-              <span aria-hidden="true" className="tabular mt-px inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-2 text-[11px] text-muted">
-                {i + 1}
-              </span>
-              {step}
-            </li>
-          ))}
-        </ol>
-        <p className="max-w-[70ch] text-[13px] text-muted">
-          The demo on the <Link href="/" className="font-medium text-accent underline underline-offset-2">Search</Link> page does steps 1 to 3. Steps 4 and 5
-          need a language model.
-        </p>
-      </section>
+      <div className="nl-body space-y-12">
+        <section aria-labelledby="short-heading" className="space-y-4">
+          <h2 id="short-heading" className="h2">
+            In short
+          </h2>
+          <div className="prose-text space-y-3">
+            <p>
+              <strong className="run-in">What it is.</strong> A tool for checking a number in a company&rsquo;s filing. You ask a question; it shows the pages
+              most likely to hold the answer, so you can read the figure at its source.
+            </p>
+            <p>
+              <strong className="run-in">What works today.</strong> Finding pages, in your browser, for {SHIPPED_FILINGS} filings. It has been scored on all{" "}
+              {results.questions} FinanceBench questions (see{" "}
+              <Link href="/results" className="tlink font-semibold">
+                Results
+              </Link>
+              ).
+            </p>
+            <p>
+              <strong className="run-in">What does not work yet.</strong> Writing the answer itself. That needs a language model, and the code for it has only
+              been tested against stand-ins. The table below says, part by part, how far each has been checked.
+            </p>
+          </div>
+          <p>
+            <Link href="/" className="btn-primary sm:w-auto">
+              Try the search
+            </Link>
+          </p>
+        </section>
 
-      <section aria-labelledby="parts-heading" className="space-y-3">
-        <h2 id="parts-heading" className="text-lg font-semibold tracking-tight">
-          Each part, and how far it has been checked
-        </h2>
-        <p className="text-[12.5px] text-faint sm:hidden">The table is wider than the screen: swipe it sideways to read every column.</p>
-        <div className="panel overflow-x-auto" tabIndex={0} role="region" aria-label="Parts of Footnote and their state; scrolls sideways">
-          <table className="w-full min-w-[560px] border-collapse text-left text-[13.5px]">
-            <caption className="sr-only">The parts of Footnote, what each does, and its state.</caption>
-            <thead>
-              <tr className="border-b border-line text-[12px] text-faint">
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Part
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  What it does
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  State
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {PARTS.map((p) => (
-                <tr key={p.name} className="border-b border-line align-top last:border-0">
-                  <th scope="row" className="px-4 py-3 font-semibold">
-                    {p.name}
+        <section aria-labelledby="flow-heading" className="space-y-4">
+          <h2 id="flow-heading" className="h2">
+            The path of a question
+          </h2>
+          <ol className="path">
+            {STEPS.map(({ step, run }) => (
+              <li key={step} data-run={run ? "yes" : "no"}>
+                <span aria-hidden="true" className="state-sq" data-s={run ? "full" : "none"} />
+                <span>{step}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="prose-text text-ink-2">
+            The demo on the{" "}
+            <Link href="/" className="tlink inline-block py-1 font-semibold text-ink">
+              Search
+            </Link>{" "}
+            page does steps 1 to 3, the filled stops. Steps 4 and 5, the hollow ones, need a language model.
+          </p>
+        </section>
+
+        <section aria-labelledby="parts-heading" className="space-y-3">
+          <h2 id="parts-heading" className="h2">
+            Each part, and how far it has been checked
+          </h2>
+          <p className="text-[13px] text-ink-3 sm:hidden">The table is wider than the screen: swipe it sideways to read every column.</p>
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Parts of Footnote and their state; scrolls sideways">
+            <table className="w-full min-w-[560px] border-collapse text-left text-[14px]">
+              <caption className="sr-only">The parts of Footnote, what each does, and its state.</caption>
+              <thead>
+                <tr className="border-b-2 border-ink text-[13px]">
+                  <th scope="col" className="py-3 pr-4 font-bold">
+                    Part
                   </th>
-                  <td className="px-4 py-3 leading-relaxed text-muted">{p.what}</td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-surface-2 px-2.5 py-1 text-[12px] font-medium text-fg">
-                      <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${STATE[p.state].dot}`} />
-                      {STATE[p.state].label}
-                    </span>
-                  </td>
+                  <th scope="col" className="px-4 py-3 font-bold">
+                    What it does
+                  </th>
+                  <th scope="col" className="min-w-[12rem] py-3 pl-4 font-bold">
+                    State
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="max-w-[72ch] text-[13px] leading-relaxed text-muted">
-          &ldquo;Stand-in&rdquo; means the code runs end to end in tests against a scripted fake of the model, which proves the plumbing and the rules but
-          not how a real model behaves with these prompts. Nothing has been run against Gemini or Groq yet.
-        </p>
-      </section>
+              </thead>
+              <tbody>
+                {PARTS.map((p) => (
+                  <tr key={p.name} className="border-b border-rule align-top">
+                    <th scope="row" className="py-3 pr-4 font-bold">
+                      {p.name}
+                    </th>
+                    <td className="px-4 py-3 leading-relaxed text-ink-2">{p.what}</td>
+                    <td className="py-3 pl-4">
+                      <span className="inline-flex items-start gap-2 font-semibold leading-snug">
+                        <span aria-hidden="true" className="state-sq mt-[3px]" data-s={STATE[p.state].square} />
+                        {STATE[p.state].label}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-      <section aria-labelledby="choices-heading" className="space-y-3">
-        <h2 id="choices-heading" className="text-lg font-semibold tracking-tight">
-          Choices and limits
-        </h2>
-        <ul className="max-w-[72ch] list-disc space-y-2 pl-5 text-[14px] leading-relaxed text-muted marker:text-faint">
-          <li>
-            <strong className="font-semibold text-fg">Free hosted models only.</strong> Gemini and Groq free tiers, no card, nothing that can bill anyone. Their
-            daily limits decide how many questions can be answered, so every result will state its sample size.
-          </li>
-          <li>
-            <strong className="font-semibold text-fg">What this site ships.</strong> The text of 7 filings (670 pages), published by the companies themselves
-            (each card links to its filing), and 31 benchmark questions with the page FinanceBench points to. It does not ship FinanceBench&rsquo;s reference
-            answers or evidence text: the benchmark states no licence, so it is used to evaluate and not redistributed.
-          </li>
-          <li>
-            <strong className="font-semibold text-fg">Not covered:</strong> fine-tuning, local models, a hosted vector database, multi-agent setups.
-          </li>
-        </ul>
-        <p className="text-[13px] text-muted">
-          Code, tests and the full write-up:{" "}
-          <a href="https://github.com/f20230125-sudo/footnote" className="font-medium text-accent underline underline-offset-2">
-            github.com/f20230125-sudo/footnote
-          </a>
-          .
-        </p>
-      </section>
+        <section aria-labelledby="choices-heading" className="space-y-4">
+          <div className="footnote-rule" />
+          <h2 id="choices-heading" className="h2">
+            Choices and limits
+          </h2>
+          <div className="prose-text space-y-3 text-ink-2">
+            <p>
+              <strong className="run-in">Free hosted models only.</strong> Gemini and Groq free tiers, no card, nothing that can bill anyone. Their daily limits
+              decide how many questions can be answered, so every result will state its sample size.
+            </p>
+            <p>
+              <strong className="run-in">What this site ships.</strong> The text of {SHIPPED_FILINGS} filings ({SHIPPED_PAGES} pages), published by the
+              companies themselves (each card links to its filing), and {SHIPPED_QUESTIONS} benchmark questions with the page FinanceBench points to. It does not
+              ship FinanceBench&rsquo;s reference answers or evidence text: the benchmark states no licence, so it is used to evaluate and not redistributed.
+            </p>
+            <p>
+              <strong className="run-in">Not covered.</strong> Fine-tuning, local models, a hosted vector database, multi-agent setups.
+            </p>
+          </div>
+          <p className="text-[14px] text-ink-2">
+            Code, tests and the full write-up:{" "}
+            <a href="https://github.com/f20230125-sudo/footnote" className="tlink inline-block py-1 font-semibold text-ink">
+              github.com/f20230125-sudo/footnote
+            </a>
+            .
+          </p>
+        </section>
+      </div>
     </div>
   );
 }

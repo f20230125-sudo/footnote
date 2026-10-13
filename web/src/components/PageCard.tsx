@@ -8,7 +8,84 @@ import { bestWindow, pieces } from "@/lib/highlight";
 import { citation, filingLabel } from "@/lib/labels";
 import { CopyButton } from "./CopyButton";
 
-/** One page of a filing: where it is, why it matched (the question's words marked), and how to cite it. */
+export type LeafProps = {
+  /** A result is an `article`; the sample on the first screen is a `figure`, so nothing counts it as a result. */
+  as?: "article" | "figure";
+  ariaLabel?: string;
+  ariaLabelledBy?: string;
+  rank: number;
+  score: number;
+  page: number;
+  /** "Best Buy, 10-K 2023" */
+  label: string;
+  /** The line to paste into a note. */
+  citation: string;
+  source?: string;
+  /** The page's text, exactly as extracted. */
+  full: string;
+  /** The question's words to mark. */
+  terms: string[];
+  isGold?: boolean;
+  /** Which stretch of the page to show before it is opened in full. Default: where the question's words are densest. */
+  view?: { start: number; end: number };
+};
+
+/**
+ * A leaf: one page of a filing as it came out of the PDF, with the page number
+ * loudest, the question's words marked, and its citation set as the footnote.
+ */
+export function Leaf({ as: Root = "article", ariaLabel, ariaLabelledBy, rank, score, page, label, citation: cite, source, full, terms, isGold = false, view }: LeafProps) {
+  const [open, setOpen] = useState(false);
+  const termSet = useMemo(() => new Set(terms), [terms]);
+  const win = useMemo(() => view ?? bestWindow(full, termSet), [view, full, termSet]);
+  const text = open ? full : full.slice(win.start, win.end);
+  const parts = useMemo(() => pieces(text, termSet), [text, termSet]);
+  const shorter = full.length > win.end - win.start;
+
+  return (
+    <Root className="leaf" data-gold={isGold ? "" : undefined} aria-label={ariaLabel} aria-labelledby={ariaLabelledBy}>
+      <header className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <span className="folio">p.&nbsp;{page}</span>
+        <span className="text-[15px] font-bold">{label}</span>
+        {isGold && <span className="text-[13px] font-semibold">FinanceBench&rsquo;s evidence page</span>}
+        <span className="tabular ml-auto flex gap-3 pr-1 text-[13px] text-ink-3">
+          <span>#{rank}</span>
+          <span title="Search score: higher means the page's words match the question more closely">score {score.toFixed(1)}</span>
+        </span>
+      </header>
+      {/* Opened in full, a long page scrolls inside its own recess instead of pushing everything else far down. */}
+      <div
+        className={`mt-4 ${open ? "page-text page-text-open" : "page-text"}`}
+        {...(open ? { tabIndex: 0, role: "region", "aria-label": `Full text of page ${page}` } : {})}
+      >
+        {!open && win.start > 0 ? "…\n" : ""}
+        {parts.map((p, i) => (p.marked ? <mark key={i}>{p.text}</mark> : <span key={i}>{p.text}</span>))}
+        {!open && win.end < full.length ? "\n…" : ""}
+      </div>
+      {shorter && (
+        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="tlink mt-2 inline-flex min-h-9 items-center text-[13px] font-semibold hover:bg-leaf-2 sm:min-h-8">
+          {open ? "Show less" : "Show the whole page"}
+        </button>
+      )}
+      <div className="footnote-rule mt-4" />
+      <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-0.5">
+        <span className="text-[14px] font-bold">
+          {label}, page {page}
+        </span>
+        <CopyButton text={cite} label="Copy citation" />
+        {source && (
+          <a href={source} target="_blank" rel="noopener noreferrer" className="tlink inline-flex min-h-9 items-center gap-1.5 text-[13px] font-semibold hover:bg-leaf-2 sm:min-h-8">
+            Open the filing
+            <ExternalLink size={13} aria-hidden="true" />
+            <span className="sr-only">(opens the company&rsquo;s site)</span>
+          </a>
+        )}
+      </div>
+    </Root>
+  );
+}
+
+/** One result: a page of a filing, ranked by the search. */
 export function PageCard({
   hit,
   rank,
@@ -24,53 +101,19 @@ export function PageCard({
   terms: Set<string>;
   isGold: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-  const full = corpus.text(hit.doc, hit.page) ?? "";
-  const win = useMemo(() => bestWindow(full, terms), [full, terms]);
-  const text = open ? full : full.slice(win.start, win.end);
-  const parts = useMemo(() => pieces(text, terms), [text, terms]);
-  const shorter = full.length > win.end - win.start;
-
+  const termList = useMemo(() => [...terms], [terms]);
   return (
-    <article className="panel rise-in p-4 sm:p-5" aria-label={`Rank ${rank}: ${hit.doc}, page ${hit.page}`}>
-      <header className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
-        <span className="tabular inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-surface-2 px-1.5 text-[12px] font-semibold">#{rank}</span>
-        <span className="text-[13.5px] font-semibold">{filing ? filingLabel(filing) : hit.doc}</span>
-        <span className="text-[13px] text-muted">page {hit.page}</span>
-        <span className="tabular text-[12px] text-faint" title="Search score: higher means the page's words match the question more closely">
-          score {hit.score.toFixed(1)}
-        </span>
-        {isGold && <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-[11.5px] font-medium text-accent">FinanceBench&rsquo;s evidence page</span>}
-        <span className="ml-auto flex items-center gap-1">
-          <CopyButton text={citation(filing, hit.doc, hit.page)} label="Copy citation" />
-          {filing?.source && (
-            <a
-              href={filing.source}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-medium text-muted underline underline-offset-2 transition-colors hover:bg-surface-2 hover:text-fg"
-            >
-              Open the filing
-              <ExternalLink size={12} aria-hidden="true" />
-              <span className="sr-only">(opens the company&rsquo;s site)</span>
-            </a>
-          )}
-        </span>
-      </header>
-      {/* Opened in full, a long page scrolls inside its own box instead of pushing everything else far down. */}
-      <div
-        className={`page-text rounded-lg bg-bg p-3 text-fg ${open ? "max-h-[30rem] overflow-y-auto" : ""}`}
-        {...(open ? { tabIndex: 0, role: "region", "aria-label": `Full text of page ${hit.page}` } : {})}
-      >
-        {!open && win.start > 0 ? "…\n" : ""}
-        {parts.map((p, i) => (p.marked ? <mark key={i}>{p.text}</mark> : <span key={i}>{p.text}</span>))}
-        {!open && win.end < full.length ? "\n…" : ""}
-      </div>
-      {shorter && (
-        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="mt-2 text-[12.5px] font-medium text-accent underline underline-offset-2">
-          {open ? "Show less" : "Show the whole page"}
-        </button>
-      )}
-    </article>
+    <Leaf
+      rank={rank}
+      score={hit.score}
+      page={hit.page}
+      label={filing ? filingLabel(filing) : hit.doc}
+      citation={citation(filing, hit.doc, hit.page)}
+      source={filing?.source}
+      full={corpus.text(hit.doc, hit.page) ?? ""}
+      terms={termList}
+      isGold={isGold}
+      ariaLabel={`Rank ${rank}: ${hit.doc}, page ${hit.page}`}
+    />
   );
 }
