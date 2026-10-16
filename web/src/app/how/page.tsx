@@ -9,10 +9,11 @@ export const metadata: Metadata = {
   description: "What each part of Footnote does, and which parts have been measured, tested against stand-ins, or not run at all.",
 };
 
-type State = "measured" | "checked" | "tested" | "standin" | "notrun";
+type State = "measured" | "checked" | "tested" | "standin" | "notrun" | "live";
 
 // The words carry the meaning; the drawn square is only a marker (filled, half, hollow), so colour never says it.
 const STATE: Record<State, { label: string; square: "full" | "half" | "none" }> = {
+  live: { label: 'Evaluated with real models on a fixed sample', square: 'full' },
   measured: { label: `Measured on all ${results.questions} questions`, square: "full" },
   checked: { label: "Checked against the real filings", square: "full" },
   tested: { label: "Unit-tested, including refusals", square: "full" },
@@ -44,7 +45,7 @@ const PARTS: Array<{ name: string; what: string; state: State }> = [
   {
     name: "Typed, cited answers",
     what: "A model must answer as structured data with a page and an exact quote for every figure. A rule checks each quote really appears on that page; an answer that fails gets one retry, then becomes a refusal.",
-    state: "standin",
+    state: "live",
   },
   {
     name: "Calculator",
@@ -54,12 +55,12 @@ const PARTS: Array<{ name: string; what: string; state: State }> = [
   {
     name: "Agent",
     what: "Searches, reads a page, calculates, and finishes, within a budget of six tool calls. Rebuilds a compact prompt each turn so each call fits a free tier's per-minute limit.",
-    state: "standin",
+    state: "live",
   },
   {
     name: "Judge",
     what: "A second model compares an answer with FinanceBench's reference answer, cross-checked by a rule that compares a single reference number.",
-    state: "notrun",
+    state: "live",
   },
   {
     name: "Free-tier budgeting",
@@ -94,7 +95,7 @@ export default function How() {
         <p className="dek mt-4 max-w-[72ch]">
           Footnote answers questions about company filings and shows the page behind every figure. The project is a measurement as much as a tool: each part is
           added one at a time and scored against the same {results.questions} questions from FinanceBench, whose own README reports that GPT-4-Turbo with
-          retrieval answered 81% of them wrongly or refused. Right now only the first three parts have numbers.
+          retrieval answered 81% of them wrongly or refused. Retrieval is measured on all questions; generated answers are evaluated on a fixed sample.
         </p>
       </div>
       <div className="nl-limits note">
@@ -123,8 +124,8 @@ export default function How() {
               ).
             </p>
             <p>
-              <strong className="run-in">What does not work yet.</strong> Writing the answer itself. That needs a language model, and the code for it has only
-              been tested against stand-ins. The table below says, part by part, how far each has been checked.
+              <strong className="run-in">Generated answers.</strong> A separate offline evaluation compares basic retrieval with the agent using real models.
+              The Results page includes the sample size, errors, refusals and uncertainty. This browser interface continues to show source pages.
             </p>
           </div>
           <p>

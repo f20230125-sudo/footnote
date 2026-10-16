@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .env
+*.log
 node_modules/
 .next/
 # FinanceBench has no stated licence: used for evaluation, never redistributed. The top-level data/

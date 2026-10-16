@@ -85,7 +85,7 @@ export function ResultsView({ results }: { results: Results }) {
       </div>
       <div className="nl-limits note">
         <p>
-          <strong>Limits.</strong> Only retrieval has been measured: nothing on this page involves a language model, and there is no accuracy figure for answers yet.{" "}
+          <strong>Scope.</strong> The retrieval measurements below use no model. A separate real-model comparison of basic retrieval and the agent follows them.{" "}
           <a href="#words" className="tlink font-semibold text-ink">
             New to these terms? See what they mean.
           </a>
@@ -172,8 +172,8 @@ export function ResultsView({ results }: { results: Results }) {
             <p>
               <strong className="run-in">Plain search is weak.</strong> Over all filings it puts a marked page in the top {k} for {pct(full)} of questions. Even
               told the right filing, it manages {pct(ceiling)}. Questions and filings use different words (a question says &ldquo;capital expenditure&rdquo;, the
-              filing says &ldquo;Purchases of property, plant and equipment&rdquo;), which is what embeddings and a query-rewriting agent are for. They are built
-              but not yet run.
+              filing says &ldquo;Purchases of property, plant and equipment&rdquo;). The real-model comparison below tests an agent that can rewrite its search;
+              embedding reranking remains unevaluated.
             </p>
             <p>
               <strong className="run-in">The company and year filter helps a lot:</strong> {pct(filtered)}, which closes {closed}% of the gap to the ceiling. It
@@ -279,12 +279,11 @@ export function ResultsView({ results }: { results: Results }) {
         <section aria-labelledby="gaps-heading" className="space-y-3">
           <div className="footnote-rule" />
           <h2 id="gaps-heading" className="h2">
-            Not measured yet
+            Beyond retrieval
           </h2>
           <p className="prose-text text-ink-2">
-            Nothing on this page involves a language model. The answering, the citation checks, the agent and the judge are written and tested against scripted
-            stand-ins, and have not been run against a real model, so there is no accuracy figure yet: not for the closed-book baseline, not for
-            retrieval-augmented answers, not for the agent. Those will be added here with their sample sizes and intervals, including any that come out badly.
+            The real-model comparison below evaluates basic retrieval and the bounded agent on the same fixed question sample. Closed-book and embedding-reranked
+            comparisons remain planned. The browser search still returns source pages; the offline evaluation measures generated answers separately.
           </p>
         </section>
       </div>

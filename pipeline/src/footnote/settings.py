@@ -59,12 +59,46 @@ class Runtime:
 def build_runtime(env: Mapping[str, str] | None = None, store: Store | None = None) -> Runtime:
     if env is None:
         e = load_env()
-        for k in ("GROQ_API_KEY", "GEMINI_API_KEY"):  # a real environment variable wins over .env
+        for k in (
+            "GROQ_API_KEY",
+            "GEMINI_API_KEY",
+            "FOOTNOTE_PROVIDER",
+            "CLAUDE_ANSWER_MODEL",
+            "CLAUDE_JUDGE_MODEL",
+            "GROQ_MODELS",
+            "GROQ_LIMITS",
+            "GEMINI_MODEL",
+            "GEMINI_LIMITS",
+            "GEMINI_EMBED_MODEL",
+            "GEMINI_EMBED_LIMITS",
+        ):
+            # A real environment variable wins over .env.
             if k in os.environ:
                 e[k] = os.environ[k]
     else:
         e = dict(env)
     store = store or Store()
+    if e.get("FOOTNOTE_PROVIDER", os.environ.get("FOOTNOTE_PROVIDER")) == "claude-cli":
+        from .llm.claude_cli import ClaudeCLI
+
+        provider = ClaudeCLI()
+        answer_model = e.get("CLAUDE_ANSWER_MODEL", "sonnet")
+        judge_model = e.get("CLAUDE_JUDGE_MODEL", "haiku")
+        if answer_model == judge_model:
+            raise ValueError("Use different answer and judge models")
+        limits = Limits(rpm=30, tpm=2_000_000, rpd=1000, tpd=10_000_000)
+
+        def cli_endpoint(model: str) -> Endpoint:
+            return Endpoint(provider, model, Budget(f"claude-cli/{model}", limits, store))
+
+        return Runtime(
+            LLM([cli_endpoint(answer_model)], store, retries=0),
+            LLM([cli_endpoint(judge_model)], store, retries=0),
+            None,
+            store,
+            [answer_model],
+            [judge_model],
+        )
     groq_key, gemini_key = e.get("GROQ_API_KEY"), e.get("GEMINI_API_KEY")
     if not groq_key and not gemini_key:
         raise MissingKey("put GROQ_API_KEY and/or GEMINI_API_KEY in .env (see .env.example)")
