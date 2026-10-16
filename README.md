@@ -6,7 +6,9 @@ The point of the project is the measurement, not the demo: every part (retrieval
 
 **Live: https://footnote-ten.vercel.app** (search the filings in your browser, see the measurements)
 
-> **Status (11 Oct 2026): retrieval is measured; no language model has been run yet.** Everything below the retrieval table is built and tested against scripted fakes only. The first real model run will be the first test of the prompts. This README will be updated with real numbers, including any that come out badly.
+> **Real-model evaluation:** [paired results and limits](results/live-evaluation.md), [manifest and per-question scores](results/live-evaluation.json). The pilot compares basic BM25 retrieval (C1) with the bounded agent (C5) on the same fixed question sample. Answer and judge use different models through an authenticated Claude Code installation. The 50-question run is resumable; its artifact states the actual completed sample and whether it is partial. Incorrect answers and refusals are retained.
+
+The current pilot has **16 completed pairs**; the provider's weekly limit blocked continuation. [What the pilot established](docs/evaluation-pilot.md), including the missing question type and the distinction between verified quotes and correct answers.
 
 ## The site
 
@@ -16,7 +18,7 @@ The point of the project is the measurement, not the demo: every part (retrieval
 - **Results**: the measurements below as three headline numbers and bars by question type, switchable between the top 1, 3, 5 and 10 results, a plain-words reading, a glossary (BM25, MRR, "ceiling"...), and every number in a table.
 - **How it works**: a short summary, then each part of the system and how far it has been checked (measured, unit-tested, tested only against a stand-in model, or not run).
 
-The site finds pages; it does not write answers, because no language model has been run yet. It ships the text of the 7 filings and the 31 questions, but not FinanceBench's reference answers or evidence text. Its data files are written by `python -m footnote.site_export`, so the page cannot drift from the evaluation. 60 end-to-end tests drive it in a real browser (searching, copying, reloading from a link, the results bars, accessibility scans in both themes, the security headers, phone and window widths with no sideways scroll, target sizes, keyboard and focus, the re-sort, what a shared link shows), plus 36 unit tests.
+The site finds pages; generated answers are measured separately by the offline real-model evaluation. It ships the text of the 7 filings and the 31 questions, but not FinanceBench's reference answers or evidence text. Its data files are written by `python -m footnote.site_export`, so the page cannot drift from the evaluation. 60 end-to-end tests drive it in a real browser (searching, copying, reloading from a link, the results bars, accessibility scans in both themes, the security headers, phone and window widths with no sideways scroll, target sizes, keyboard and focus, the re-sort, what a shared link shows), plus 36 unit tests.
 
 ## What is measured so far (no model, all 150 questions)
 
@@ -85,3 +87,17 @@ Model runs need `GROQ_API_KEY` and/or `GEMINI_API_KEY` in a git-ignored `.env` (
 - FinanceBench states no licence on its repository, so it is used for evaluation and **not redistributed here**: clone it yourself into `data/financebench`.
 - Gemini's free tier may use prompts to improve Google's products; the documents here are public filings.
 - Not covered: fine-tuning, local models, a hosted vector database, multi-agent setups.
+
+## Reproduce the real-model evaluation
+
+On Windows PowerShell, with Claude Code installed and already signed in:
+
+```powershell
+$env:PYTHONPATH = "pipeline/src"
+$env:FOOTNOTE_PROVIDER = "claude-cli"
+python -m footnote.evals.live --subset 50
+```
+
+The two configurations alternate per question. IDs and data fingerprints are fixed before inference. Calls are cached, completed questions are skipped on resume, and a provider limit stops the run with a partial result instead of fabricating completion. Full answers, reference text and traces stay in ignored `data/`; only scores, IDs, model names and aggregate measurements are published. The CLI's tools, customizations and session persistence are disabled. It cannot set temperature or a completion-token cap; the manifest/report states that limitation. Costs are API-equivalent estimates reported by CLI, not subscription charges.
+
+By default the answerer is Sonnet and the judge is Haiku. Set `CLAUDE_ANSWER_MODEL` and `CLAUDE_JUDGE_MODEL` to different models if needed. To evaluate an API-backed runtime instead, use the existing `.env.example` configuration, unset `FOOTNOTE_PROVIDER`, and choose a new `--out` directory so results from different runtimes cannot be mixed. Hybrid/embedding configurations are not part of this C1/C5 comparison.

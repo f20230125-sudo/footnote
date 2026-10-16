@@ -1,0 +1,541 @@
+{
+  "manifest": {
+    "schemaVersion": 1,
+    "provider": "claude-cli",
+    "questionIds": [
+      "financebench_id_00080",
+      "financebench_id_00283",
+      "financebench_id_00382",
+      "financebench_id_00476",
+      "financebench_id_00494",
+      "financebench_id_00552",
+      "financebench_id_00591",
+      "financebench_id_00603",
+      "financebench_id_00605",
+      "financebench_id_00678",
+      "financebench_id_00685",
+      "financebench_id_00711",
+      "financebench_id_00724",
+      "financebench_id_00735",
+      "financebench_id_00757",
+      "financebench_id_00790",
+      "financebench_id_00799",
+      "financebench_id_00807",
+      "financebench_id_00995",
+      "financebench_id_01009",
+      "financebench_id_01028",
+      "financebench_id_01091",
+      "financebench_id_01148",
+      "financebench_id_01279",
+      "financebench_id_01346",
+      "financebench_id_01488",
+      "financebench_id_01858",
+      "financebench_id_01902",
+      "financebench_id_01928",
+      "financebench_id_01930",
+      "financebench_id_01936",
+      "financebench_id_02024",
+      "financebench_id_02416",
+      "financebench_id_02987",
+      "financebench_id_03031",
+      "financebench_id_03069",
+      "financebench_id_03473",
+      "financebench_id_03531",
+      "financebench_id_03849",
+      "financebench_id_03882",
+      "financebench_id_04103",
+      "financebench_id_04481",
+      "financebench_id_04660",
+      "financebench_id_04784",
+      "financebench_id_05718",
+      "financebench_id_05915",
+      "financebench_id_06741",
+      "financebench_id_07507",
+      "financebench_id_08286",
+      "financebench_id_10285"
+    ],
+    "questionTypes": {
+      "domain-relevant": 17,
+      "novel-generated": 16,
+      "metrics-generated": 17
+    },
+    "configs": [
+      "C1",
+      "C5"
+    ],
+    "setting": "full",
+    "filings": 360,
+    "pages": 53399,
+    "corpusFingerprint": "7e6f007205bebd257ad23d26f1222b178cce8988122d7943c0e003b6b349a121",
+    "benchmarkFingerprint": "984457b526ea9d78fc3a95a8579987f192e14d16c713a3d6bcd0bdba97667d06",
+    "answerModelAliases": [
+      "sonnet"
+    ],
+    "judgeModelAliases": [
+      "haiku"
+    ],
+    "sourceCommit": "6298f6192d20d05b9c520bbc4292fe7d32496467",
+    "inferenceFingerprint": "32e5f63d215ad36dfdbd0c4be2ad32a3ee2135590cd6ba7c41bfec647fa737cb",
+    "sourceWasDirty": true,
+    "provenanceNote": "sourceCommit is the base commit; inference ran with the feature-branch changes. The model prompts and inference semantics were not tuned during the pilot.",
+    "stopReason": "provider_limit"
+  },
+  "complete": false,
+  "updated": "2026-10-16T12:25:59.812955+00:00",
+  "summary": {
+    "C1": {
+      "n": 16,
+      "correct": 1,
+      "accuracy": 0.0625,
+      "accuracy95": [
+        0.0,
+        0.1875
+      ],
+      "refused": 15,
+      "unjudged": 0,
+      "answersWithCheckedQuotes": 1,
+      "allQuotesPresent": 1,
+      "medianAnswerSeconds": 5.670999999999999,
+      "meanAnswerTokens": 5824.75,
+      "apiEquivalentUsdIncludingJudge": 0.41416200000000003,
+      "questions": [
+        {
+          "id": "financebench_id_00080",
+          "type": "domain-relevant",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00283",
+          "type": "novel-generated",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00382",
+          "type": "novel-generated",
+          "verdict": "correct",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": false,
+          "grounding": {
+            "cited": 1,
+            "supported": 1
+          }
+        },
+        {
+          "id": "financebench_id_00476",
+          "type": "domain-relevant",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00494",
+          "type": "novel-generated",
+          "verdict": "refused",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00552",
+          "type": "domain-relevant",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00591",
+          "type": "novel-generated",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00603",
+          "type": "novel-generated",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00605",
+          "type": "novel-generated",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00678",
+          "type": "domain-relevant",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00685",
+          "type": "domain-relevant",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00711",
+          "type": "domain-relevant",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00724",
+          "type": "novel-generated",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00735",
+          "type": "domain-relevant",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00757",
+          "type": "novel-generated",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00790",
+          "type": "domain-relevant",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        }
+      ]
+    },
+    "C5": {
+      "n": 16,
+      "correct": 5,
+      "accuracy": 0.3125,
+      "accuracy95": [
+        0.125,
+        0.5625
+      ],
+      "refused": 5,
+      "unjudged": 0,
+      "answersWithCheckedQuotes": 11,
+      "allQuotesPresent": 11,
+      "medianAnswerSeconds": 39.742000000000004,
+      "meanAnswerTokens": 18300.0625,
+      "apiEquivalentUsdIncludingJudge": 1.544201,
+      "questions": [
+        {
+          "id": "financebench_id_00080",
+          "type": "domain-relevant",
+          "verdict": "incorrect",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": false,
+          "grounding": {
+            "cited": 4,
+            "supported": 4
+          }
+        },
+        {
+          "id": "financebench_id_00283",
+          "type": "novel-generated",
+          "verdict": "refused",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00382",
+          "type": "novel-generated",
+          "verdict": "incorrect",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": false,
+          "grounding": {
+            "cited": 1,
+            "supported": 1
+          }
+        },
+        {
+          "id": "financebench_id_00476",
+          "type": "domain-relevant",
+          "verdict": "correct",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 1,
+            "supported": 1
+          }
+        },
+        {
+          "id": "financebench_id_00494",
+          "type": "novel-generated",
+          "verdict": "incorrect",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 2,
+            "supported": 2
+          }
+        },
+        {
+          "id": "financebench_id_00552",
+          "type": "domain-relevant",
+          "verdict": "correct",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 2,
+            "supported": 2
+          }
+        },
+        {
+          "id": "financebench_id_00591",
+          "type": "novel-generated",
+          "verdict": "refused",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00603",
+          "type": "novel-generated",
+          "verdict": "refused",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00605",
+          "type": "novel-generated",
+          "verdict": "refused",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00678",
+          "type": "domain-relevant",
+          "verdict": "incorrect",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 3,
+            "supported": 3
+          }
+        },
+        {
+          "id": "financebench_id_00685",
+          "type": "domain-relevant",
+          "verdict": "correct",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": true,
+          "grounding": {
+            "cited": 2,
+            "supported": 2
+          }
+        },
+        {
+          "id": "financebench_id_00711",
+          "type": "domain-relevant",
+          "verdict": "refused",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 0,
+            "supported": 0
+          }
+        },
+        {
+          "id": "financebench_id_00724",
+          "type": "novel-generated",
+          "verdict": "incorrect",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 1,
+            "supported": 1
+          }
+        },
+        {
+          "id": "financebench_id_00735",
+          "type": "domain-relevant",
+          "verdict": "correct",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 2,
+            "supported": 2
+          }
+        },
+        {
+          "id": "financebench_id_00757",
+          "type": "novel-generated",
+          "verdict": "correct",
+          "pageHit": false,
+          "stop": "finished",
+          "ruleMatch": true,
+          "grounding": {
+            "cited": 1,
+            "supported": 1
+          }
+        },
+        {
+          "id": "financebench_id_00790",
+          "type": "domain-relevant",
+          "verdict": "incorrect",
+          "pageHit": true,
+          "stop": "finished",
+          "ruleMatch": null,
+          "grounding": {
+            "cited": 3,
+            "supported": 3
+          }
+        }
+      ]
+    }
+  },
+  "completedByConfig": {
+    "C1": 17,
+    "C5": 16
+  },
+  "pairedQuestionTypes": {
+    "domain-relevant": 8,
+    "novel-generated": 8
+  },
+  "answerModels": [
+    "claude-sonnet-5"
+  ],
+  "judgeModels": [
+    "claude-haiku-4-5-20251001"
+  ],
+  "paired": {
+    "a": "C1",
+    "b": "C5",
+    "n": 16,
+    "accuracyDifference": 0.25,
+    "difference95": [
+      0.0,
+      0.5
+    ]
+  },
+  "limits": [
+    "A fixed stratified sample, not the full benchmark; intervals reflect sample uncertainty.",
+    "Tables compare only completed pairs. A quota-limited prefix of the planned stratified sample is not necessarily stratified itself.",
+    "Quote checks verify text exists on a page, not that it supports every inference.",
+    "A different model judges answers; this is automated grading, not human validation.",
+    "C1 and C5 differ in filtering, page access, calculation and citation enforcement; this comparison does not isolate agent reasoning alone.",
+    "CLI cannot set temperature or max output tokens; its tools and customizations are disabled.",
+    "Costs are API-equivalent estimates reported by CLI, not subscription charges.",
+    "Latency sums recorded answer-model calls; cached replays retain original call latency."
+  ]
+}

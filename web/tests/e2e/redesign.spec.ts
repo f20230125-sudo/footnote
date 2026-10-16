@@ -26,7 +26,7 @@ test.describe("the first screen", () => {
     // A sample is not a result: nothing counts it as one.
     await expect(page.getByRole("article")).toHaveCount(0);
     // The sentence about limits, the question field and the head of the page are all on the first screen.
-    await expect(page.getByText(/it does not write answers/)).toBeInViewport();
+    await expect(page.getByText(/browser search returns source pages/)).toBeInViewport();
     await expect(page.getByLabel("Your question")).toBeInViewport();
     await expect(sample.locator("header")).toBeInViewport();
   });
@@ -46,7 +46,7 @@ test.describe("the first screen", () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
     await ready(page);
-    const limits = page.getByText(/it does not write answers/);
+    const limits = page.getByText(/browser search returns source pages/);
     await expect(limits).toBeInViewport();
     const h1 = await page.getByRole("heading", { level: 1 }).boundingBox();
     const note = await limits.boundingBox();

@@ -219,8 +219,8 @@ test.describe("results", () => {
     await page.locator("label", { hasText: "top 3" }).click();
     await expect(page.getByRole("heading", { name: /top 3 results/ })).toBeVisible();
     await expect(tiles.nth(0)).toContainText("8%");
-    await expect(page.getByRole("table")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Not measured yet" })).toBeVisible();
+    await expect(page.getByRole("table", {name:/Share of questions/})).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Beyond retrieval" })).toBeVisible();
   });
 
   test("explains the words it uses", async ({ page }) => {
@@ -234,7 +234,7 @@ test.describe("results", () => {
 
   test("the table's numbers are the ones in the chart's data", async ({ page }) => {
     await page.goto("/results");
-    const rows = page.getByRole("table").locator("tbody tr");
+    const rows = page.getByRole("table").filter({has:page.locator('tbody tr', {hasText:'All filings'})}).locator("tbody tr");
     await expect(rows).toHaveCount(12); // 4 groups of questions x 3 ways of searching
     const overall = rows.first();
     await expect(overall).toContainText("All filings");
@@ -243,10 +243,10 @@ test.describe("results", () => {
 });
 
 test.describe("how it works", () => {
-  test("says which parts have not been run", async ({ page }) => {
+  test("distinguishes real-model evaluation from measured retrieval", async ({ page }) => {
     await page.goto("/how");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("How it works");
-    await expect(page.getByRole("row", { name: /Judge/ })).toContainText("Built, not run");
+    await expect(page.getByRole("row", { name: /Judge/ })).toContainText("Evaluated with real models");
     await expect(page.getByRole("row", { name: /Keyword search/ })).toContainText("Measured");
   });
 
