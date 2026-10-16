@@ -28,7 +28,7 @@ export function Header() {
   const { theme, toggleTheme } = useTheme();
   return (
     <header className="sticky top-0 z-30 border-b border-rule bg-ground">
-      <div className="mx-auto flex h-14 w-full max-w-[1128px] items-center gap-3 px-4 sm:gap-8 sm:px-6">
+      <div className="mx-auto flex h-14 w-full max-w-[1128px] items-center gap-1 px-4 sm:gap-8 sm:px-6">
         <Link href="/" className="flex h-11 items-center gap-2 text-[16px] font-extrabold tracking-tight">
           <Logo />
           Footnote
@@ -48,7 +48,7 @@ export function Header() {
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex shrink-0 items-center gap-1">
           <a
             href="https://github.com/f20230125-sudo/footnote"
             className="tlink hidden min-h-9 items-center px-2 text-[14px] font-medium text-ink-2 hover:text-ink sm:inline-flex"
