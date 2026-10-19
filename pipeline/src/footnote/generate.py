@@ -26,6 +26,7 @@ def call(
             completion_tokens=c.completion_tokens,
             cached=c.cached,
             duration_ms=c.latency_ms,
+            cost_usd=c.cost_usd,
         )
     )
     return c

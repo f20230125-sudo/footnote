@@ -32,6 +32,7 @@ class Step:
     completion_tokens: int = 0
     cached: bool = False
     duration_ms: int = 0  # for a cached model call, the provider's original latency
+    cost_usd: float | None = None
 
 
 def step_to_dict(s: Step) -> dict[str, Any]:
@@ -44,6 +45,7 @@ def step_to_dict(s: Step) -> dict[str, Any]:
         "completion_tokens": s.completion_tokens,
         "cached": s.cached,
         "duration_ms": s.duration_ms,
+        "cost_usd": s.cost_usd,
     }
 
 

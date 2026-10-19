@@ -29,6 +29,7 @@ class Completion:
     latency_ms: int = (
         0  # how long the provider took, kept with the answer so a replay can report it
     )
+    cost_usd: float | None = None  # provider estimate; CLI uses API-equivalent cost
 
 
 def cache_key(provider: str, model: str, payload: dict) -> str:
@@ -58,10 +59,14 @@ class Store:
             );
             """
         )
+        columns = {r[1] for r in self.db.execute("PRAGMA table_info(calls)")}
+        if "cost_usd" not in columns:
+            self.db.execute("ALTER TABLE calls ADD COLUMN cost_usd REAL")
+            self.db.commit()
 
     def get(self, key: str) -> Completion | None:
         row = self.db.execute(
-            "SELECT model, text, prompt_tokens, completion_tokens, latency_ms FROM calls "
+            "SELECT model, text, prompt_tokens, completion_tokens, latency_ms, cost_usd FROM calls "
             "WHERE key = ?",
             (key,),
         ).fetchone()
@@ -74,12 +79,22 @@ class Store:
             model=row[0],
             cached=True,
             latency_ms=row[4],
+            cost_usd=row[5],
         )
 
     def put(self, key: str, c: Completion) -> None:
         self.db.execute(
-            "INSERT OR REPLACE INTO calls VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (key, c.model, c.text, c.prompt_tokens, c.completion_tokens, time.time(), c.latency_ms),
+            "INSERT OR REPLACE INTO calls VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                key,
+                c.model,
+                c.text,
+                c.prompt_tokens,
+                c.completion_tokens,
+                time.time(),
+                c.latency_ms,
+                c.cost_usd,
+            ),
         )
         self.db.commit()
 

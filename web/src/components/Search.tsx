@@ -119,8 +119,7 @@ function LimitsNote() {
   return (
     <div className="nl-limits note">
       <p>
-        <strong>What this does not do yet.</strong> It finds pages, it does not write answers. Writing an answer needs a language model, and none has been run on
-        this project yet. What has been measured is on the{" "}
+        <strong>Search and evaluation.</strong> This browser search returns source pages. Generated answers are measured separately in an offline real-model comparison on the{" "}
         <Link href="/results" className="tlink font-semibold text-ink">
           Results
         </Link>{" "}

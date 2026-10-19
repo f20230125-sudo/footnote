@@ -5,6 +5,6 @@ export const THEME_STORAGE_KEY = "footnote:theme";
 
 /**
  * Runs in <head> before anything is drawn, so the page never flashes the wrong
- * theme. Uses the saved choice, or the system's setting when there is none.
+ * theme. Uses the saved choice, or light when there is none.
  */
-export const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`;
+export const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}");if(t!=="light"&&t!=="dark"){t="light"}document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`;

@@ -107,6 +107,8 @@ def record(q: Question, setting: str, run: Run, judged: Judged) -> dict:
         "rule_match": judged.rule_match,
         "judge_model": judged.judge_model,
         "judge_tokens": judged.judge_tokens,
+        "judge_latency_ms": judged.judge_latency_ms,
+        "judge_cost_usd": judged.judge_cost_usd,
     }
 
 

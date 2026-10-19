@@ -45,6 +45,8 @@ class Judged:
     )  # single reference number found in the candidate; None if not applicable
     judge_model: str = ""
     judge_tokens: int = 0
+    judge_latency_ms: int = 0
+    judge_cost_usd: float | None = None
 
 
 def numbers_in(text: str) -> list[float]:
@@ -93,5 +95,13 @@ def judge(llm: Chat, question: str, gold: str, justification: str, answer: Answe
         body = re.sub(r"^```(?:json)?\s*|\s*```$", "", c.text.strip())
         v = Verdict.model_validate(json.loads(body))
     except (json.JSONDecodeError, ValidationError):
-        return Judged("unjudged", f"judge reply unreadable: {c.text[:80]!r}", rule, c.model, tokens)
-    return Judged(v.verdict, v.reason, rule, c.model, tokens)
+        return Judged(
+            "unjudged",
+            f"judge reply unreadable: {c.text[:80]!r}",
+            rule,
+            c.model,
+            tokens,
+            c.latency_ms,
+            c.cost_usd,
+        )
+    return Judged(v.verdict, v.reason, rule, c.model, tokens, c.latency_ms, c.cost_usd)

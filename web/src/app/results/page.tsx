@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ResultsView } from "@/components/ResultsView";
 import { resultsSchema } from "@/lib/data";
 import raw from "../../../public/data/results.json";
+import { LiveResults } from '@/components/LiveResults';
 
 export const metadata: Metadata = {
   title: "Results",
@@ -13,5 +14,5 @@ export const metadata: Metadata = {
 const results = resultsSchema.parse(raw);
 
 export default function ResultsPage() {
-  return <ResultsView results={results} />;
+  return <><ResultsView results={results} /><div className="mx-auto max-w-5xl px-6 pb-16"><LiveResults /></div></>;
 }
